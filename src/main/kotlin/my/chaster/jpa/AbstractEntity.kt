@@ -3,18 +3,19 @@ package my.chaster.jpa
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.Version
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 import javax.persistence.Column
 import javax.persistence.EmbeddedId
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
+import javax.persistence.EntityListeners
 import javax.persistence.MappedSuperclass
 
 @MappedSuperclass
-abstract class AbstractEntity<ID : AbstractEntityId> {
+@EntityListeners(AuditingEntityListener::class)
+abstract class AbstractEntity<ID : AbstractEntityId>(
 	@EmbeddedId
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	var id: ID? = null
+	var id: ID,
+) {
 
 	@CreatedDate
 	@Column(name = "created_on", nullable = false, updatable = false)

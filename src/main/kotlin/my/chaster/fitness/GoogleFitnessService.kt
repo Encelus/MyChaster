@@ -51,7 +51,7 @@ class GoogleFitnessService(
 	}
 
 	fun authorize(): String {
-		val authorizationUrl = flow.newAuthorizationUrl().setRedirectUri("http://localhost:8080/fit?chasterUserId=abc")
+		val authorizationUrl = flow.newAuthorizationUrl().setRedirectUri("http://localhost:8080/fit")
 		return authorizationUrl.build()
 	}
 

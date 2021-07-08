@@ -30,18 +30,20 @@ class GoogleFitnessView(
 		sayHello = Button("Say hello")
 		add(name, sayHello)
 		setVerticalComponentAlignment(FlexComponent.Alignment.END, name, sayHello)
-		sayHello.addClickListener { e: ClickEvent<Button?>? -> Notification.show("Hello " + profileApi!!.authMeControllerMe().username) }
+		sayHello.addClickListener { e: ClickEvent<Button?>? -> Notification.show("Hello " + profileApi.authMeControllerMe().username) }
 	}
 
 	override fun beforeEnter(event: BeforeEnterEvent) {
 		if (event.location.queryParameters.parameters.containsKey("chasterUserId")) {
 			val chasterUserId = event.location.queryParameters.parameters["chasterUserId"]!![0].let { ChasterUserId(it) }
 			if (!googleFitnessService.isAuthorized(chasterUserId)) {
+				event.ui.session.setAttribute("chasterUserId", chasterUserId)
 				event.ui.page.open(googleFitnessService.authorize(), "_self")
 			}
 		} else if (event.location.queryParameters.parameters.containsKey("code")) {
-			val chasterUserId = event.location.queryParameters.parameters["code"]
-//			googleFitnessService.storeAuthorization(code)
+			val googleCode = event.location.queryParameters.parameters["code"]!![0]
+			val chasterUserId = event.ui.session.getAttribute("chasterUserId") as ChasterUserId
+			googleFitnessService.storeAuthorization(googleCode, chasterUserId)
 		}
 	}
 }

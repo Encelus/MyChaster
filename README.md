@@ -1,16 +1,16 @@
 # MyChaster
 
-This project can be used as a starting point to create your own Vaadin application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+A webserver providing extensions for https://chaster.app
+
+Currently still under heavy construction and not with any extension yet ;)
 
 ## Running the application
-The project is a standard Maven project. To run it from the command line,
-type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
+
+The project is a standard Maven project. To run it from the command line, type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
 http://localhost:8080 in your browser.
 
-You can also import the project to your IDE of choice as you would with any
-Maven project. Read more on [how to set up a development environment for
-Vaadin projects](https://vaadin.com/docs/latest/guide/install) (Windows, Linux, macOS).
+You can also import the project to your IDE of choice as you would with any Maven project. Read more
+on [how to set up a development environment for Vaadin projects](https://vaadin.com/docs/latest/guide/install) (Windows, Linux, macOS).
 
 ## Deploying to Production
 To create a production build, call `mvnw clean package -Pproduction` (Windows),
@@ -42,3 +42,16 @@ Once the JAR file is built, you can run it using
 - Find Add-ons at [vaadin.com/directory](https://vaadin.com/directory).
 - Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/vaadin) or join our [Discord channel](https://discord.gg/MYFq5RTbBn).
 - Report issues, create pull requests in [GitHub](https://github.com/vaadin/).
+
+## Database setup
+
+```
+CREATE ROLE mychaster LOGIN PASSWORD 'changeme';
+ALTER ROLE mychaster SET search_path = mychaster;
+CREATE DATABASE mychaster OWNER mychaster;
+CREATE SCHEMA mychaster;
+ALTER SCHEMA mychaster OWNER TO mychaster;
+GRANT ALL PRIVILEGES ON SCHEMA mychaster TO mychaster;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA mychaster TO mychaster;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA mychaster TO mychaster;
+```

@@ -1,0 +1,25 @@
+root = true
+
+[*]
+charset = utf-8
+tab_width = 4
+indent_style = tab
+max_line_length = 200
+
+[*.java]
+ij_java_names_count_to_use_import_on_demand = 999
+ij_java_class_count_to_use_import_on_demand = 999
+
+[*.xml]
+indent_size = 4
+
+[{*.kt, *.kts}]
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_name_count_to_use_star_import = 999
+ij_kotlin_name_count_to_use_star_import_for_members = 999
+ij_kotlin_packages_to_use_import_on_demand =
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+[*.properties]
+ij_properties_keep_blank_lines = true

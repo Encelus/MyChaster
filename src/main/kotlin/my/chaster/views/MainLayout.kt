@@ -13,16 +13,21 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.tabs.Tab
 import com.vaadin.flow.component.tabs.Tabs
 import com.vaadin.flow.component.tabs.TabsVariant
+import com.vaadin.flow.router.BeforeEnterEvent
+import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.PageTitle
 import com.vaadin.flow.router.RouterLink
+import my.chaster.chaster.ChasterUserId
 import my.chaster.views.about.AboutView
 import my.chaster.views.helloworld.HelloWorldView
+import org.apache.http.HttpStatus
+import org.apache.http.client.HttpResponseException
 import java.util.Optional
 
 /**
  * The main view is a top-level placeholder for other views.
  */
-class MainLayout : AppLayout() {
+class MainLayout : AppLayout(), BeforeEnterObserver {
 
 	private val menu: Tabs
 	private var viewTitle: H1? = null
@@ -99,6 +104,24 @@ class MainLayout : AppLayout() {
 			val title = content.javaClass.getAnnotation(PageTitle::class.java)
 			return title?.value ?: ""
 		}
+
+	override fun beforeEnter(event: BeforeEnterEvent) {
+		verifyChasterUserId(event)
+	}
+
+	private fun verifyChasterUserId(event: BeforeEnterEvent): ChasterUserId {
+		if (event.ui.session.hasChasterUserId()) {
+			return event.ui.session.getChasterUserId()
+		}
+
+		if (event.location.queryParameters.parameters.containsKey("chasterUserId")) {
+			val parameterChasterUserId = event.location.queryParameters.parameters["chasterUserId"]!![0].let { ChasterUserId(it) }
+			event.ui.session.setChasterUserId(parameterChasterUserId)
+			return parameterChasterUserId
+		}
+
+		throw HttpResponseException(HttpStatus.SC_UNAUTHORIZED, "User not specified")
+	}
 
 	companion object {
 		private fun createTab(text: String, navigationTarget: Class<out Component>): Tab {

@@ -18,10 +18,13 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.PageTitle
 import com.vaadin.flow.router.RouterLink
 import my.chaster.chaster.ChasterUserId
+import my.chaster.gen.chaster.model.AllOfLockForPublicUser
+import my.chaster.gen.chaster.model.LockForPublic
 import my.chaster.views.about.AboutView
 import my.chaster.views.helloworld.HelloWorldView
 import org.apache.http.HttpStatus
 import org.apache.http.client.HttpResponseException
+import java.time.OffsetDateTime
 import java.util.Optional
 
 /**
@@ -117,6 +120,13 @@ class MainLayout : AppLayout(), BeforeEnterObserver {
 		if (event.location.queryParameters.parameters.containsKey("chasterUserId")) {
 			val parameterChasterUserId = event.location.queryParameters.parameters["chasterUserId"]!![0].let { ChasterUserId(it) }
 			event.ui.session.setChasterUserId(parameterChasterUserId)
+
+			val currentLock = LockForPublic()
+			currentLock.id = "abcde"
+			currentLock.startDate = OffsetDateTime.now().minusDays(7)
+			currentLock.user = AllOfLockForPublicUser()
+			currentLock.user.id = parameterChasterUserId.id
+			event.ui.session.setCurrentLock(currentLock)
 			return parameterChasterUserId
 		}
 

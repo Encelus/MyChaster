@@ -15,8 +15,7 @@ import com.google.api.services.fitness.model.Dataset
 import my.chaster.chaster.ChasterUserId
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.transaction.Transactional
 
@@ -60,7 +59,7 @@ class GoogleFitnessService(
 		flow.createAndStoreCredential(response, chasterUserId.id)
 	}
 
-	fun getStepsOfDay(chasterUserId: ChasterUserId, day: LocalDate): Int {
+	fun getSteps(chasterUserId: ChasterUserId, start: Instant, end: Instant): Int {
 		val fitness = createClient(chasterUserId)
 		val aggregateRequest = AggregateRequest()
 			.setAggregateBy(
@@ -71,10 +70,10 @@ class GoogleFitnessService(
 				),
 			)
 			.setBucketByTime(BucketByTime().setDurationMillis(TimeUnit.DAYS.toMillis(1)))
-			.setStartTimeMillis(day.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
-			.setEndTimeMillis(day.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
-		val datasetsOfDay = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
-		return datasetsOfDay.bucket.asSequence()
+			.setStartTimeMillis(start.toEpochMilli())
+			.setEndTimeMillis(end.toEpochMilli())
+		val datasets = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
+		return datasets.bucket.asSequence()
 			.flatMap { bucket: AggregateBucket -> bucket.dataset }
 			.flatMap { dataset: Dataset -> dataset.point }
 			.flatMap { dataPoint: DataPoint -> dataPoint.value }

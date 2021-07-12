@@ -3,6 +3,7 @@ package my.chaster.extension.fitness.stepsperperiod
 import com.vaadin.flow.component.Component
 import com.vaadin.flow.component.Text
 import com.vaadin.flow.component.grid.Grid
+import com.vaadin.flow.component.grid.GridSortOrderBuilder
 import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.icon.Icon
 import com.vaadin.flow.component.icon.VaadinIcon
@@ -18,15 +19,15 @@ import my.chaster.views.MainLayout
 import my.chaster.views.TemporalFormatter
 import my.chaster.views.ensureZoneId
 import my.chaster.views.getChasterUserId
+import my.chaster.views.getCurrentLock
 import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 @Route(value = "fit", layout = MainLayout::class)
 @PageTitle("Steps Per Period")
 class StepsPerPeriodView(
 	private val googleFitnessService: GoogleFitnessService,
-	private val stepsPerPeriodHistoryRepository: StepsPerPeriodHistoryRepository,
+	private val stepsPerPeriodService: StepsPerPeriodService,
 ) : VerticalLayout(), BeforeEnterObserver {
 
 	private val grid: Grid<StepsPerPeriodHistory>
@@ -37,9 +38,10 @@ class StepsPerPeriodView(
 	init {
 		addClassName("steps-per-period-view")
 		grid = Grid(StepsPerPeriodHistory::class.java, false)
-		grid.addColumn(this::renderPeriod).setHeader("Period").setComparator(Comparator.comparing(StepsPerPeriodHistory::periodStart))
+		val periodColumn = grid.addColumn(this::renderPeriod).setHeader("Period").setComparator(Comparator.comparing(StepsPerPeriodHistory::periodStart))
 		grid.addColumn(StepsPerPeriodHistory::steps).setHeader("Steps")
 		grid.addComponentColumn(this::renderAppliedPunishment).setHeader("Result")
+		grid.sort(GridSortOrderBuilder<StepsPerPeriodHistory>().thenDesc(periodColumn).build())
 		add(grid)
 
 		period = Text("")
@@ -53,6 +55,7 @@ class StepsPerPeriodView(
 		if (event.location.queryParameters.parameters.containsKey("code")) {
 			val googleCode = event.location.queryParameters.parameters["code"]!![0]
 			googleFitnessService.storeAuthorization(googleCode, chasterUserId)
+			event.ui.ensureZoneId { initUi() }
 		} else if (!googleFitnessService.isAuthorized(chasterUserId)) {
 			event.ui.session.setAttribute("chasterUserId", chasterUserId)
 			event.ui.page.open(googleFitnessService.authorize(), "_self")
@@ -92,9 +95,8 @@ class StepsPerPeriodView(
 	}
 
 	fun initGridData() {
-		val chasterUserId = VaadinSession.getCurrent().getChasterUserId()
-		val lockStart = Instant.now().minus(30, ChronoUnit.DAYS)
-		grid.setItems(stepsPerPeriodHistoryRepository.findAllByChasterUserIdAndPeriodStartAfterOrderByPeriodStartDesc(chasterUserId, lockStart))
+		val currentLock = VaadinSession.getCurrent().getCurrentLock()
+		grid.setItems(stepsPerPeriodService.loadHistory(currentLock))
 	}
 
 

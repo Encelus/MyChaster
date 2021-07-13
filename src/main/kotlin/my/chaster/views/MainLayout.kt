@@ -21,9 +21,8 @@ import my.chaster.chaster.ChasterUserId
 import my.chaster.gen.chaster.model.AllOfLockForPublicUser
 import my.chaster.gen.chaster.model.LockForPublic
 import my.chaster.views.about.AboutView
+import my.chaster.views.error.nouserspecified.NoUserSpecified
 import my.chaster.views.helloworld.HelloWorldView
-import org.apache.http.HttpStatus
-import org.apache.http.client.HttpResponseException
 import java.time.OffsetDateTime
 import java.util.Optional
 
@@ -112,11 +111,7 @@ class MainLayout : AppLayout(), BeforeEnterObserver {
 		verifyChasterUserId(event)
 	}
 
-	private fun verifyChasterUserId(event: BeforeEnterEvent): ChasterUserId {
-		if (event.ui.session.hasChasterUserId()) {
-			return event.ui.session.getChasterUserId()
-		}
-
+	private fun verifyChasterUserId(event: BeforeEnterEvent) {
 		if (event.location.queryParameters.parameters.containsKey("chasterUserId")) {
 			val parameterChasterUserId = event.location.queryParameters.parameters["chasterUserId"]!![0].let { ChasterUserId(it) }
 			event.ui.session.setChasterUserId(parameterChasterUserId)
@@ -127,10 +122,9 @@ class MainLayout : AppLayout(), BeforeEnterObserver {
 			currentLock.user = AllOfLockForPublicUser()
 			currentLock.user.id = parameterChasterUserId.id
 			event.ui.session.setCurrentLock(currentLock)
-			return parameterChasterUserId
+		} else if (!event.ui.session.hasChasterUserId()) {
+			event.rerouteToError(NoUserSpecified(), "")
 		}
-
-		throw HttpResponseException(HttpStatus.SC_UNAUTHORIZED, "User not specified")
 	}
 
 	companion object {

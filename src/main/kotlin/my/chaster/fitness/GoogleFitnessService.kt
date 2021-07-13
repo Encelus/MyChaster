@@ -34,7 +34,6 @@ class GoogleFitnessService(
 		web.clientId = clientId
 		web.clientSecret = clientSecret
 		val clientSecrets = GoogleClientSecrets().setWeb(web)
-		//			httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 		flow = GoogleAuthorizationCodeFlow.Builder(
 			Utils.getDefaultTransport(),
 			Utils.getDefaultJsonFactory(),
@@ -50,7 +49,9 @@ class GoogleFitnessService(
 	}
 
 	fun authorize(): String {
-		val authorizationUrl = flow.newAuthorizationUrl().setRedirectUri("http://localhost:8080/fit")
+		val authorizationUrl = flow.newAuthorizationUrl()
+			.setAccessType("offline")
+			.setRedirectUri("http://localhost:8080/fit")
 		return authorizationUrl.build()
 	}
 

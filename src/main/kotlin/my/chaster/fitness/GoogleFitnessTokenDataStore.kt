@@ -62,14 +62,14 @@ class GoogleFitnessTokenDataStore(
 		val maybeExistingToken = googleFitnessTokenRepository.findByChasterUserId(chasterUserId)
 		if (maybeExistingToken != null) {
 			maybeExistingToken.token = value.accessToken
-			maybeExistingToken.validUntil = Instant.now().plusMillis(value.expirationTimeMilliseconds)
+			maybeExistingToken.validUntil = Instant.ofEpochMilli(value.expirationTimeMilliseconds)
 			maybeExistingToken.refreshToken = value.refreshToken
 		} else {
 			googleFitnessTokenRepository.save(
 				GoogleFitnessToken(
 					chasterUserId,
 					value.accessToken,
-					Instant.now().plusMillis(value.expirationTimeMilliseconds),
+					Instant.ofEpochMilli(value.expirationTimeMilliseconds),
 					value.refreshToken,
 				),
 			)

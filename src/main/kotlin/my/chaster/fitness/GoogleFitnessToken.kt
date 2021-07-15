@@ -1,6 +1,7 @@
 package my.chaster.fitness
 
 import my.chaster.chaster.ChasterUserId
+import my.chaster.chaster.WithChasterUserId
 import my.chaster.jpa.AbstractEntity
 import my.chaster.jpa.AbstractEntityId
 import java.time.Instant
@@ -14,14 +15,14 @@ import javax.persistence.Table
 @Table(name = "google_fitness_token")
 class GoogleFitnessToken(
 	@Column(name = "chaster_user_id", nullable = false, updatable = false, unique = true)
-	val chasterUserId: ChasterUserId,
+	override val chasterUserId: ChasterUserId,
 	@Column(name = "token", nullable = false)
 	var token: String,
 	@Column(name = "valid_until", nullable = false)
 	var validUntil: Instant,
 	@Column(name = "refresh_token")
 	var refreshToken: String?,
-) : AbstractEntity<GoogleFitnessTokenId>(GoogleFitnessTokenId()) {
+) : AbstractEntity<GoogleFitnessTokenId>(GoogleFitnessTokenId()), WithChasterUserId {
 
 
 }

@@ -2,6 +2,7 @@ package my.chaster.extension.fitness.stepsperperiod
 
 import my.chaster.chaster.ChasterLockId
 import my.chaster.chaster.ChasterUserId
+import my.chaster.chaster.WithChasterUserId
 import my.chaster.jpa.AbstractEntity
 import my.chaster.jpa.AbstractEntityId
 import my.chaster.util.isAfterOrEqual
@@ -18,7 +19,7 @@ import javax.persistence.Table
 @Table(name = "steps_per_period_history")
 class StepsPerPeriodHistory(
 	@Column(name = "chaster_user_id", nullable = false, updatable = false)
-	val chasterUserId: ChasterUserId,
+	override val chasterUserId: ChasterUserId,
 	@Column(name = "chaster_lock_id", nullable = false, updatable = false)
 	val chasterLockId: ChasterLockId,
 	@Column(name = "period_start", nullable = false, updatable = false)
@@ -27,7 +28,7 @@ class StepsPerPeriodHistory(
 	val periodEnd: Instant,
 	@Column(name = "steps", nullable = false)
 	var steps: Int,
-) : AbstractEntity<StepsPerPeriodHistoryId>(StepsPerPeriodHistoryId()) {
+) : AbstractEntity<StepsPerPeriodHistoryId>(StepsPerPeriodHistoryId()), WithChasterUserId {
 
 	@Column(name = "applied_punishment")
 	var appliedPunishment: Duration? = null

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>my.chaster</groupId>
 	<artifactId>mychaster</artifactId>
-	<name>Project base for Spring Boot and Vaadin Flow</name>
+	<name>MyChaster</name>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -107,6 +107,10 @@
 			<groupId>com.github.f4b6a3</groupId>
 			<artifactId>ulid-creator</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-kotlin</artifactId>
 		</dependency>
 
 		<dependency>

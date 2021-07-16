@@ -1,6 +1,7 @@
 package my.chaster.messaging
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import my.chaster.jpa.AfterCommitRunner
 import org.springframework.context.ApplicationContext
 import org.springframework.core.GenericTypeResolver
 import org.springframework.stereotype.Component
@@ -10,6 +11,7 @@ class MessagingPublisher(
 	applicationContext: ApplicationContext,
 	private val applicationMessageRepository: ApplicationMessageRepository,
 	private val messagingExecutor: MessagingExecutor,
+	private val afterCommitRunner: AfterCommitRunner,
 	private val objectMapper: ObjectMapper,
 ) {
 
@@ -34,7 +36,10 @@ class MessagingPublisher(
 		val payload = objectMapper.writeValueAsString(message)
 		val consumers = consumersByType[messageType] ?: throw IllegalStateException("No Consumer for $messageType")
 		consumers.forEach { saveMessage(it, payload) }
-		messagingExecutor.executeMessages()
+
+		afterCommitRunner.execute {
+			messagingExecutor.fetchAndExecuteMessages()
+		}
 	}
 
 	private fun saveMessage(consumer: String, payload: String) {

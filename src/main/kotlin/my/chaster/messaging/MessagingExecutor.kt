@@ -1,6 +1,7 @@
 package my.chaster.messaging
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import my.chaster.jpa.TransactionalRunner
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -25,10 +26,10 @@ class MessagingExecutor(
 
 
 	@PostConstruct
-	fun executeMessages() {
+	fun fetchAndExecuteMessages() {
 		executor.submit {
 			do {
-				val page = applicationMessageRepository.findAllByFailureIsNull(PageRequest.of(0, 20))
+				val page = applicationMessageRepository.findAllByFailureIsNull(PageRequest.of(0, PAGE_SIZE))
 				page.forEach { processInNewTransaction(it.id) }
 			} while (page.hasNext())
 		}
@@ -43,11 +44,11 @@ class MessagingExecutor(
 
 				applicationMessageRepository.delete(message)
 			}
-		} catch (ex: Exception) {
-			LOGGER.error("Failed to handle $messageId", ex)
+		} catch (e: Exception) {
+			LOGGER.error("Failed to handle $messageId", e)
 			transactionalRunner.runInNewTransaction {
 				val message = applicationMessageRepository.findOrThrow(messageId)
-				message.failure = ex.message ?: ex::class.qualifiedName!!
+				message.failure = "[${e::class.qualifiedName}] ${e.message}"
 			}
 		}
 	}
@@ -76,6 +77,9 @@ class MessagingExecutor(
 
 	companion object {
 		private val LOGGER = LoggerFactory.getLogger(MessagingExecutor::class.java)
+
+		@VisibleForTesting
+		val PAGE_SIZE = 5
 	}
 
 	private class CachedMessagingConsumer(

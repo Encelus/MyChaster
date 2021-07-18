@@ -1,6 +1,7 @@
 package my.chaster.extension.fitness.stepsperperiod
 
 import my.chaster.chaster.ChasterLockId
+import my.chaster.chaster.ChasterLockService
 import my.chaster.chaster.getChasterId
 import my.chaster.extension.fitness.stepsperperiod.workaround.config.StepsPerPeriodConfig
 import my.chaster.extension.fitness.stepsperperiod.workaround.config.StepsPerPeriodConfigRepository
@@ -18,6 +19,7 @@ class StepsPerPeriodService(
 	private val stepsPerPeriodConfigRepository: StepsPerPeriodConfigRepository,
 	private val googleFitnessService: GoogleFitnessService,
 	private val locksApi: LocksApi,
+	private val chasterLockService: ChasterLockService,
 ) {
 
 	fun loadHistory(chasterLockId: ChasterLockId): Set<StepsPerPeriodHistory> {
@@ -82,8 +84,8 @@ class StepsPerPeriodService(
 
 	private fun finalizeHistory(config: StepsPerPeriodConfig, history: StepsPerPeriodHistory) {
 		val punishment = if (history.steps < config.requiredSteps) {
+			chasterLockService.addTime(config.chasterLockId, config.penalty)
 			config.penalty
-			//TODO publish chaster message to apply penalty
 		} else {
 			null
 		}

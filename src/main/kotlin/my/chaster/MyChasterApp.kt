@@ -41,8 +41,8 @@ class MyChasterApp : SpringBootServletInitializer(), AppShellConfigurator {
 	@Bean
 	fun apiClient(restTemplateBuilder: RestTemplateBuilder, @Value("\${chaster.developer-token}") chasterDeveloperToken: String): ApiClient {
 		val restTemplate = restTemplateBuilder
-			.setConnectTimeout(Duration.ofSeconds(3))
-			.setReadTimeout(Duration.ofSeconds(3))
+			.setConnectTimeout(Duration.ofSeconds(5))
+			.setReadTimeout(Duration.ofSeconds(5))
 			.build()
 
 		val apiClient = ApiClient(restTemplate)

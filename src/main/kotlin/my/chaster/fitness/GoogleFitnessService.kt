@@ -13,6 +13,7 @@ import com.google.api.services.fitness.model.BucketByTime
 import com.google.api.services.fitness.model.DataPoint
 import com.google.api.services.fitness.model.Dataset
 import my.chaster.chaster.ChasterUserId
+import my.chaster.views.UrlBuilder
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -25,6 +26,7 @@ class GoogleFitnessService(
 	@Value("\${google.client-id}") clientId: String,
 	@Value("\${google.client-secret}") clientSecret: String,
 	private val googleFitnessTokenDataStore: GoogleFitnessTokenDataStore,
+	private val urlBuilder: UrlBuilder,
 ) {
 
 	private val flow: GoogleAuthorizationCodeFlow
@@ -48,15 +50,15 @@ class GoogleFitnessService(
 		return googleFitnessTokenDataStore.get(chasterUserId.id) != null
 	}
 
-	fun authorize(): String {
+	fun authorize(redirectPage: String): String {
 		val authorizationUrl = flow.newAuthorizationUrl()
 			.setAccessType("offline")
-			.setRedirectUri("http://localhost:8080/fit")
+			.setRedirectUri(urlBuilder.build(redirectPage).toString())
 		return authorizationUrl.build()
 	}
 
-	fun storeAuthorization(code: String, chasterUserId: ChasterUserId) {
-		val response: TokenResponse = flow.newTokenRequest(code).setRedirectUri("http://localhost:8080/fit").execute()
+	fun storeAuthorization(page: String, code: String, chasterUserId: ChasterUserId) {
+		val response: TokenResponse = flow.newTokenRequest(code).setRedirectUri(urlBuilder.build(page).toString()).execute()
 		flow.createAndStoreCredential(response, chasterUserId.id)
 	}
 

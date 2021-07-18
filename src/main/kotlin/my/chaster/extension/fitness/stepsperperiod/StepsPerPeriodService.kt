@@ -1,10 +1,13 @@
 package my.chaster.extension.fitness.stepsperperiod
 
+import my.chaster.chaster.ChasterLockId
 import my.chaster.chaster.getChasterId
+import my.chaster.extension.fitness.stepsperperiod.workaround.config.StepsPerPeriodConfig
+import my.chaster.extension.fitness.stepsperperiod.workaround.config.StepsPerPeriodConfigRepository
 import my.chaster.fitness.GoogleFitnessService
+import my.chaster.gen.chaster.api.LocksApi
 import my.chaster.gen.chaster.model.LockForPublic
 import org.springframework.stereotype.Service
-import java.time.Duration
 import java.time.Instant
 import javax.transaction.Transactional
 
@@ -12,36 +15,40 @@ import javax.transaction.Transactional
 @Transactional
 class StepsPerPeriodService(
 	private val stepsPerPeriodHistoryRepository: StepsPerPeriodHistoryRepository,
+	private val stepsPerPeriodConfigRepository: StepsPerPeriodConfigRepository,
 	private val googleFitnessService: GoogleFitnessService,
+	private val locksApi: LocksApi,
 ) {
 
-	fun loadHistory(currentLock: LockForPublic): Set<StepsPerPeriodHistory> {
-		val existingHistory = stepsPerPeriodHistoryRepository.findAllByChasterLockId(currentLock.getChasterId())
-		val fullHistory = tryCreatingMissingHistoryEntries(currentLock, existingHistory)
+	fun loadHistory(chasterLockId: ChasterLockId): Set<StepsPerPeriodHistory> {
+		val lock = locksApi.lockControllerFindOne(chasterLockId.id)
+		val config = stepsPerPeriodConfigRepository.findByChasterLockIdOrThrow(chasterLockId)
 
-		updateNonFinalHistory(currentLock, fullHistory)
+		val existingHistory = stepsPerPeriodHistoryRepository.findAllByChasterLockId(chasterLockId)
+		val fullHistory = tryCreatingMissingHistoryEntries(lock, config, existingHistory)
+
+		updateNonFinalHistory(config, fullHistory)
 		return fullHistory
 	}
 
-	private fun tryCreatingMissingHistoryEntries(currentLock: LockForPublic, existingHistory: Set<StepsPerPeriodHistory>): Set<StepsPerPeriodHistory> {
-		val createHistoryFrom = existingHistory.maxOfOrNull { it.periodEnd } ?: currentLock.startDate.toInstant()
-		val createHistoryUntil = if (currentLock.endDate != null) {
-			currentLock.endDate.toInstant()
+	private fun tryCreatingMissingHistoryEntries(lock: LockForPublic, config: StepsPerPeriodConfig, existingHistory: Set<StepsPerPeriodHistory>): Set<StepsPerPeriodHistory> {
+		val createHistoryFrom = existingHistory.maxOfOrNull { it.periodEnd } ?: lock.startDate.toInstant()
+		val createHistoryUntil = if (lock.endDate != null) {
+			lock.endDate.toInstant()
 		} else {
 			Instant.now()
 		}
 
-		val createdHistory = createHistory(createHistoryFrom, createHistoryUntil, currentLock)
+		val createdHistory = createHistory(createHistoryFrom, createHistoryUntil, lock, config)
 		return existingHistory + createdHistory
 	}
 
-	private fun createHistory(start: Instant, end: Instant, currentLock: LockForPublic): Set<StepsPerPeriodHistory> {
+	private fun createHistory(start: Instant, end: Instant, currentLock: LockForPublic, config: StepsPerPeriodConfig): Set<StepsPerPeriodHistory> {
 		val createdHistoryEntries = mutableSetOf<StepsPerPeriodHistory>()
-		val period = Duration.ofDays(1)
 
 		var periodStart = start
 		while (periodStart.isBefore(end)) {
-			val periodEnd = periodStart.plus(period)
+			val periodEnd = periodStart.plus(config.period)
 			val historyEntry = stepsPerPeriodHistoryRepository.save(
 				StepsPerPeriodHistory(
 					currentLock.user.getChasterId(),
@@ -58,7 +65,7 @@ class StepsPerPeriodService(
 		return createdHistoryEntries
 	}
 
-	private fun updateNonFinalHistory(currentLock: LockForPublic, history: Set<StepsPerPeriodHistory>) {
+	private fun updateNonFinalHistory(config: StepsPerPeriodConfig, history: Set<StepsPerPeriodHistory>) {
 		for (entry in history) {
 			if (entry.isFinal) {
 				continue
@@ -68,16 +75,15 @@ class StepsPerPeriodService(
 			entry.steps = steps
 
 			if (!entry.isActive(Instant.now())) {
-				finalizeHistory(currentLock, entry)
+				finalizeHistory(config, entry)
 			}
 		}
 	}
 
-	private fun finalizeHistory(currentLock: LockForPublic, history: StepsPerPeriodHistory) {
-		val requiredSteps = 2500
-
-		val punishment = if (history.steps < requiredSteps) {
-			Duration.ofHours(12)
+	private fun finalizeHistory(config: StepsPerPeriodConfig, history: StepsPerPeriodHistory) {
+		val punishment = if (history.steps < config.requiredSteps) {
+			config.penalty
+			//TODO publish chaster message to apply penalty
 		} else {
 			null
 		}

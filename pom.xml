@@ -11,7 +11,7 @@
 	<properties>
 		<java.version>16</java.version>
 		<vaadin.version>20.0.3</vaadin.version>
-		<kotlin.version>1.5.20</kotlin.version>
+		<kotlin.version>1.5.21</kotlin.version>
 		<flyway.version>7.2.0</flyway.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -146,6 +146,7 @@
 				<!-- Clean build and startup time for Vaadin apps sometimes may exceed
 					 the default Spring Boot's 30sec timeout.  -->
 				<configuration>
+					<mainClass>my.chaster.MyChasterApp</mainClass>
 					<wait>500</wait>
 					<maxAttempts>240</maxAttempts>
 				</configuration>
@@ -175,7 +176,7 @@
 				<executions>
 					<execution>
 						<id>compile</id>
-						<phase>compile</phase>
+						<phase>process-sources</phase>
 						<goals>
 							<goal>compile</goal>
 						</goals>
@@ -218,7 +219,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-
 			<plugin>
 				<groupId>io.swagger.codegen.v3</groupId>
 				<artifactId>swagger-codegen-maven-plugin</artifactId>
@@ -241,7 +241,8 @@
 								<performBeanValidation>true</performBeanValidation>
 								<useRuntimeException>true</useRuntimeException>
 							</configOptions>
-							<inputSpec>https://api.chaster.app/api-json</inputSpec>
+							<!--							<inputSpec>https://api.chaster.app/api-json</inputSpec>-->
+							<inputSpec>${project.basedir}/src/main/resources/chaster-api.json</inputSpec>
 							<invokerPackage>my.chaster.gen.chaster</invokerPackage>
 							<apiPackage>my.chaster.gen.chaster.api</apiPackage>
 							<modelPackage>my.chaster.gen.chaster.model</modelPackage>

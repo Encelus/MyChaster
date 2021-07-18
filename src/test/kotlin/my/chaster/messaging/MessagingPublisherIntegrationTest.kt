@@ -2,6 +2,7 @@ package my.chaster.messaging
 
 import my.chaster.AbstractIntegrationTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -43,5 +44,16 @@ internal class MessagingPublisherIntegrationTest : AbstractIntegrationTest() {
 		assertThat(testMessagingConsumer.receivedMessages).contains(testMessage)
 
 		assertThat(applicationMessageRepository.findAll()).noneSatisfy { assertThat(it.payload).contains(testMessage.someValue) }
+	}
+
+	@Test
+	fun `publish should throw if trying to publish message that has no consumer`() {
+		//given
+		val messageWithoutConsumer = "Some string message"
+
+		//when / then
+		assertThatThrownBy { testee.publish(messageWithoutConsumer) }
+			.isInstanceOf(IllegalStateException::class.java)
+			.hasMessage("No Consumer for class java.lang.String")
 	}
 }

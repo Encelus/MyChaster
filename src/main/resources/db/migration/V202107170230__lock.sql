@@ -1,0 +1,10 @@
+CREATE TABLE lock
+(
+	id UUID NOT NULL PRIMARY KEY,
+	created_on TIMESTAMPTZ NOT NULL,
+	modified_on TIMESTAMPTZ NOT NULL,
+	optlock BIGINT DEFAULT 0 NOT NULL,
+	chaster_lock_id TEXT NOT NULL UNIQUE,
+	chaster_user_id TEXT NOT NULL,
+	fake_api_key UUID NOT NULL UNIQUE
+);

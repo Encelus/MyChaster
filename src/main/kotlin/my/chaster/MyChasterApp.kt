@@ -9,6 +9,7 @@ import my.chaster.gen.chaster.auth.OAuth
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.vaadin.artur.helpers.LaunchUtil
 import java.time.Duration
 
@@ -29,6 +31,8 @@ import java.time.Duration
 @SpringBootApplication
 @EnableJpaRepositories
 @EnableJpaAuditing
+@EnableScheduling
+@ConfigurationPropertiesScan
 @ComponentScan(excludeFilters = [ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = ["my.chaster.gen.chaster.ApiClient"])])
 @Theme(value = "mychaster", variant = Lumo.DARK)
 @PWA(name = "MyChaster", shortName = "MyChaster", offlineResources = ["images/logo.png"])

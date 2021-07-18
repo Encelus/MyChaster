@@ -1,8 +1,8 @@
 package my.chaster.views
 
 import com.vaadin.flow.server.VaadinSession
+import my.chaster.chaster.ChasterLockId
 import my.chaster.chaster.ChasterUserId
-import my.chaster.gen.chaster.model.LockForPublic
 import java.time.ZoneId
 
 class VaadinSessionExt
@@ -19,13 +19,15 @@ fun VaadinSession.setChasterUserId(chasterUserId: ChasterUserId) {
 	setAttribute("chasterUserId", chasterUserId)
 }
 
-fun VaadinSession.getCurrentLock(): LockForPublic {
-	return getAttribute("currentLock") as LockForPublic
+
+fun VaadinSession.getChasterLockId(): ChasterLockId {
+	return getAttribute("chasterLockId") as ChasterLockId
 }
 
-fun VaadinSession.setCurrentLock(currentLock: LockForPublic) {
-	setAttribute("currentLock", currentLock)
+fun VaadinSession.setChasterLockId(chasterLockId: ChasterLockId) {
+	setAttribute("chasterLockId", chasterLockId)
 }
+
 
 fun VaadinSession.hasZoneId(): Boolean {
 	return getAttribute("zoneId") != null

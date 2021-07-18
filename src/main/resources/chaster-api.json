@@ -1,0 +1,6127 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+	"title": "Chaster",
+	"description": "Chaster Public API\n\nAPI documentation: [https://docs.chaster.app/api-introduction](https://docs.chaster.app/api-introduction)\n",
+	"version": "0.11.2",
+	"contact": {}
+  },
+  "tags": [],
+  "servers": [
+	{
+	  "url": "https://api.chaster.app"
+	}
+  ],
+  "components": {
+	"securitySchemes": {
+	  "bearer": {
+		"scheme": "bearer",
+		"bearerFormat": "JWT",
+		"type": "http"
+	  },
+	  "oauth2": {
+		"type": "oauth2",
+		"flows": {
+		  "authorizationCode": {
+			"authorizationUrl": "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth",
+			"tokenUrl": "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/token",
+			"refreshUrl": "https://sso.chaster.app/auth/realms/app/protocol/openid-connect",
+			"scopes": {
+			  "profile": "Profile",
+			  "email": "Email",
+			  "locks": "Locks",
+			  "shared_locks": "SharedLocks",
+			  "keyholder": "Keyholder",
+			  "messaging": "Messaging",
+			  "developer": "Developer"
+			}
+		  }
+		}
+	  },
+	  "clientId": {
+		"type": "apiKey",
+		"in": "header",
+		"name": "X-Chaster-Client-Id",
+		"description": "Your application id"
+	  },
+	  "clientSecret": {
+		"type": "apiKey",
+		"in": "header",
+		"name": "X-Chaster-Client-Secret",
+		"description": "Your application secret key"
+	  }
+	},
+	"schemas": {
+	  "UploadFilesDto": {
+		"type": "object",
+		"properties": {
+		  "files": {
+			"type": "array",
+			"description": "The files to upload",
+			"items": {
+			  "type": "file",
+			  "items": {
+				"type": "string",
+				"format": "binary"
+			  }
+			}
+		  },
+		  "type": {
+			"type": "string",
+			"description": "The target storage",
+			"enum": [
+			  "messaging"
+			]
+		  }
+		},
+		"required": [
+		  "files",
+		  "type"
+		]
+	  },
+	  "UploadFilesRepDto": {
+		"type": "object",
+		"properties": {
+		  "token": {
+			"type": "string",
+			"description": "The attachment token\n\nIt can be used in messaging, post and other endpoints that support\nattachments"
+		  }
+		},
+		"required": [
+		  "token"
+		]
+	  },
+	  "UserMetadata": {
+		"type": "object",
+		"properties": {
+		  "locktober2020Points": {
+			"type": "number"
+		  }
+		},
+		"required": [
+		  "locktober2020Points"
+		]
+	  },
+	  "UserForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The user id"
+		  },
+		  "username": {
+			"type": "string",
+			"description": "The username"
+		  },
+		  "isPremium": {
+			"type": "boolean",
+			"description": "Whether the user has a Premium subscription"
+		  },
+		  "description": {
+			"type": "string",
+			"description": "The profile description"
+		  },
+		  "location": {
+			"type": "string",
+			"description": "The location"
+		  },
+		  "gender": {
+			"type": "string",
+			"description": "The gender"
+		  },
+		  "age": {
+			"type": "number",
+			"description": "The age"
+		  },
+		  "role": {
+			"description": "The role",
+			"enum": [
+			  "keyholder",
+			  "wearer",
+			  "switch",
+			  "unspecified"
+			],
+			"type": "string"
+		  },
+		  "avatarUrl": {
+			"type": "string",
+			"description": "The avatar URL"
+		  },
+		  "online": {
+			"type": "boolean",
+			"description": "Whether the user is online"
+		  },
+		  "lastSeen": {
+			"type": "number",
+			"nullable": true,
+			"description": "User last seen, in seconds"
+		  },
+		  "isAdmin": {
+			"type": "boolean",
+			"description": "Whether the user is an admin"
+		  },
+		  "metadata": {
+			"description": "User metadata",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserMetadata"
+			  }
+			]
+		  },
+		  "fullLocation": {
+			"type": "string",
+			"description": "User full location"
+		  },
+		  "discordId": {
+			"type": "string",
+			"description": "The Discord ID"
+		  },
+		  "discordUsername": {
+			"type": "string",
+			"description": "The Discord username"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "username",
+		  "isPremium",
+		  "description",
+		  "location",
+		  "gender",
+		  "age",
+		  "role",
+		  "avatarUrl",
+		  "online",
+		  "lastSeen",
+		  "isAdmin",
+		  "metadata",
+		  "fullLocation",
+		  "discordId",
+		  "discordUsername"
+		]
+	  },
+	  "UnsplashPhoto": {
+		"type": "object",
+		"properties": {
+		  "id": {
+			"type": "string"
+		  },
+		  "username": {
+			"type": "string"
+		  },
+		  "name": {
+			"type": "string"
+		  },
+		  "url": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "id",
+		  "username",
+		  "name",
+		  "url"
+		]
+	  },
+	  "ExtensionConfigForPublic": {
+		"type": "object",
+		"properties": {
+		  "slug": {
+			"type": "string",
+			"enum": [
+			  "link",
+			  "pillory",
+			  "dice",
+			  "wheel-of-fortune",
+			  "tasks",
+			  "penalty",
+			  "temporary-opening",
+			  "verification-picture",
+			  "random-events",
+			  "guess-timer",
+			  "locktober"
+			]
+		  },
+		  "config": {
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/LinkConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PilloryConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/DiceConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/WheelOfFortuneConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TasksConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PenaltyConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TemporaryOpeningConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/VerificationPictureConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/RandomEventsConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/GuessTimerConfig"
+			  }
+			]
+		  },
+		  "name": {
+			"type": "string"
+		  },
+		  "textConfig": {
+			"type": "string"
+		  },
+		  "mode": {
+			"enum": [
+			  "cumulative",
+			  "non_cumulative",
+			  "turn",
+			  "unlimited"
+			],
+			"type": "string"
+		  },
+		  "regularity": {
+			"type": "number",
+			"minimum": 0
+		  }
+		},
+		"required": [
+		  "slug",
+		  "config",
+		  "name",
+		  "mode",
+		  "regularity"
+		]
+	  },
+	  "SharedLockForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The shared lock id"
+		  },
+		  "calculatedMaxLimitDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "The calculated max limit duration"
+		  },
+		  "user": {
+			"description": "The creator",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserForPublic"
+			  }
+			]
+		  },
+		  "unsplashPhoto": {
+			"nullable": true,
+			"description": "The Unsplash photo",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UnsplashPhoto"
+			  }
+			]
+		  },
+		  "createdAt": {
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "deletedAt": {
+			"type": "string",
+			"nullable": true,
+			"description": "Deleted at"
+		  },
+		  "archivedAt": {
+			"type": "string",
+			"nullable": true,
+			"description": "Archived at"
+		  },
+		  "locks": {
+			"description": "List of locks\n\nOnly returned in shared locks endpoints",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockForPublic"
+			}
+		  },
+		  "minDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "The minimum duration, in seconds",
+			"minimum": 1
+		  },
+		  "maxDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "The maximum duration, in seconds"
+		  },
+		  "maxLimitDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "The maximum duration of the lock, in seconds\n\nAfter this duration, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "minDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The minimum date"
+		  },
+		  "maxDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date"
+		  },
+		  "maxLimitDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date of the lock\n\nAfter this date, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "Whether the remaining time should be displayed to the wearer"
+		  },
+		  "limitLockTime": {
+			"type": "boolean",
+			"description": "Whether the lock is limited in time"
+		  },
+		  "maxLockedUsers": {
+			"type": "number",
+			"nullable": true,
+			"description": "The number of maximum locked users for this shared lock",
+			"minimum": 1
+		  },
+		  "isPublic": {
+			"type": "boolean",
+			"description": "Whether the lock is public"
+		  },
+		  "requireContact": {
+			"type": "boolean",
+			"description": "Whether the shared lock requires contact from wearer\n\nDisplayed for information purposes only on the lock page"
+		  },
+		  "password": {
+			"type": "string",
+			"nullable": true,
+			"description": "An optional password"
+		  },
+		  "name": {
+			"type": "string",
+			"description": "The name"
+		  },
+		  "description": {
+			"type": "string",
+			"description": "The description"
+		  },
+		  "hideTimeLogs": {
+			"type": "boolean",
+			"description": "Whether the time information should be hidden from the history"
+		  },
+		  "lastSavedAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Last saved at"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "calculatedMaxLimitDuration",
+		  "unsplashPhoto",
+		  "extensions",
+		  "createdAt",
+		  "deletedAt",
+		  "archivedAt",
+		  "minDuration",
+		  "maxDuration",
+		  "maxLimitDuration",
+		  "minDate",
+		  "maxDate",
+		  "maxLimitDate",
+		  "displayRemainingTime",
+		  "limitLockTime",
+		  "maxLockedUsers",
+		  "isPublic",
+		  "requireContact",
+		  "password",
+		  "name",
+		  "description",
+		  "hideTimeLogs",
+		  "lastSavedAt"
+		]
+	  },
+	  "LinkConfig": {
+		"type": "object",
+		"properties": {
+		  "timeToAdd": {
+			"type": "number",
+			"description": "The time to add if a user chooses to add time. -1 if disabled."
+		  },
+		  "timeToRemove": {
+			"type": "number",
+			"description": "The time to remove if a user chooses to remove time. -1 if disabled."
+		  },
+		  "enableRandom": {
+			"type": "boolean",
+			"description": "Enable random choice."
+		  },
+		  "nbVisits": {
+			"type": "number",
+			"description": "Number of visits required"
+		  },
+		  "limitToLoggedUsers": {
+			"type": "boolean",
+			"description": "Only allow logged users to vote"
+		  }
+		},
+		"required": [
+		  "timeToAdd",
+		  "timeToRemove",
+		  "enableRandom",
+		  "nbVisits",
+		  "limitToLoggedUsers"
+		]
+	  },
+	  "PilloryConfig": {
+		"type": "object",
+		"properties": {
+		  "timeToAdd": {
+			"type": "number",
+			"description": "The time to be added to each vote, in seconds",
+			"minimum": 60
+		  },
+		  "limitToLoggedUsers": {
+			"type": "boolean",
+			"description": "Only allow logged users to vote"
+		  }
+		},
+		"required": [
+		  "timeToAdd",
+		  "limitToLoggedUsers"
+		]
+	  },
+	  "DiceConfig": {
+		"type": "object",
+		"properties": {
+		  "multiplier": {
+			"type": "number",
+			"description": "The time to be multiplied by the number of dice rolled, in seconds",
+			"minimum": 1
+		  }
+		},
+		"required": [
+		  "multiplier"
+		]
+	  },
+	  "WheelOfFortuneSegment": {
+		"type": "object",
+		"properties": {
+		  "type": {
+			"enum": [
+			  "add-time",
+			  "remove-time",
+			  "add-remove-time",
+			  "text",
+			  "freeze",
+			  "locktober",
+			  "pillory",
+			  "set-freeze",
+			  "set-unfreeze"
+			],
+			"type": "string"
+		  },
+		  "text": {
+			"type": "string"
+		  },
+		  "duration": {
+			"type": "number",
+			"minimum": 1
+		  }
+		},
+		"required": [
+		  "type"
+		]
+	  },
+	  "WheelOfFortuneConfig": {
+		"type": "object",
+		"properties": {
+		  "segments": {
+			"description": "list of segments",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/WheelOfFortuneSegment"
+			}
+		  }
+		},
+		"required": [
+		  "segments"
+		]
+	  },
+	  "AddTimeLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Add time to a lock",
+			"type": "string",
+			"enum": [
+			  "add_time"
+			]
+		  },
+		  "params": {
+			"type": "number",
+			"description": "The amount of time to add, in seconds",
+			"minimum": 1
+		  }
+		},
+		"required": [
+		  "name",
+		  "params"
+		]
+	  },
+	  "RemoveTimeLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Remove time to a lock",
+			"type": "string",
+			"enum": [
+			  "remove_time"
+			]
+		  },
+		  "params": {
+			"type": "number",
+			"description": "The amount of time to remove, in seconds",
+			"minimum": 1
+		  }
+		},
+		"required": [
+		  "name",
+		  "params"
+		]
+	  },
+	  "FreezeLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Freeze a lock",
+			"type": "string",
+			"enum": [
+			  "freeze"
+			]
+		  }
+		},
+		"required": [
+		  "name"
+		]
+	  },
+	  "UnfreezeLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Unfreeze a lock",
+			"type": "string",
+			"enum": [
+			  "unfreeze"
+			]
+		  }
+		},
+		"required": [
+		  "name"
+		]
+	  },
+	  "ToggleFreezeLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Toggle the freeze status of a lock",
+			"type": "string",
+			"enum": [
+			  "toggle_freeze"
+			]
+		  }
+		},
+		"required": [
+		  "name"
+		]
+	  },
+	  "PilloryLockActionParamsModel": {
+		"type": "object",
+		"properties": {
+		  "duration": {
+			"type": "number",
+			"description": "The pillory duration, in seconds",
+			"minimum": 300,
+			"maximum": 86400
+		  },
+		  "reason": {
+			"type": "string",
+			"description": "The text that will be displayed on the pillory"
+		  }
+		},
+		"required": [
+		  "duration"
+		]
+	  },
+	  "PilloryLockActionModel": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"description": "Put a user in pillory for the given duration.\nNote: this only works if the user has enabled the pillory extension.",
+			"type": "string",
+			"enum": [
+			  "pillory"
+			]
+		  },
+		  "params": {
+			"$ref": "#/components/schemas/PilloryLockActionParamsModel"
+		  }
+		},
+		"required": [
+		  "name",
+		  "params"
+		]
+	  },
+	  "TaskItem": {
+		"type": "object",
+		"properties": {
+		  "task": {
+			"type": "string",
+			"description": "The task",
+			"maxLength": 60
+		  },
+		  "points": {
+			"type": "number",
+			"description": "Number of points given",
+			"minimum": 0
+		  }
+		},
+		"required": [
+		  "task",
+		  "points"
+		]
+	  },
+	  "LockAction": {
+		"type": "object",
+		"properties": {
+		  "params": {
+			"description": "Parameters",
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/AddTimeLockActionModel"
+			  },
+			  {
+				"$ref": "#/components/schemas/RemoveTimeLockActionModel"
+			  },
+			  {
+				"$ref": "#/components/schemas/FreezeLockActionModel"
+			  },
+			  {
+				"$ref": "#/components/schemas/UnfreezeLockActionModel"
+			  },
+			  {
+				"$ref": "#/components/schemas/ToggleFreezeLockActionModel"
+			  },
+			  {
+				"$ref": "#/components/schemas/PilloryLockActionModel"
+			  }
+			]
+		  },
+		  "name": {
+			"type": "string",
+			"description": "The action name"
+		  }
+		},
+		"required": [
+		  "params",
+		  "name"
+		]
+	  },
+	  "TasksConfig": {
+		"type": "object",
+		"properties": {
+		  "tasks": {
+			"description": "The time to be multiplied by the number of tasks rolled, in seconds",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/TaskItem"
+			}
+		  },
+		  "voteEnabled": {
+			"type": "boolean",
+			"description": "True if vote is enabled"
+		  },
+		  "voteDuration": {
+			"type": "number",
+			"description": "Vote duration",
+			"minimum": 0
+		  },
+		  "startVoteAfterLastVote": {
+			"type": "boolean",
+			"description": "Starts a vote right after the last vote finishes"
+		  },
+		  "enablePoints": {
+			"type": "boolean",
+			"description": "True if points enabled"
+		  },
+		  "pointsRequired": {
+			"type": "number",
+			"description": "Points required to unlock",
+			"minimum": 0
+		  },
+		  "allowWearerToEditTasks": {
+			"type": "boolean",
+			"description": "True if the wearer is allowed to edit tasks when locked"
+		  },
+		  "allowWearerToConfigureTasks": {
+			"type": "boolean",
+			"description": "If true, the wearer will configure tasks for the first time"
+		  },
+		  "preventWearerFromAssigningTasks": {
+			"type": "boolean",
+			"description": "Prevent wearers from assigning tasks to themselves"
+		  },
+		  "allowWearerToChooseTasks": {
+			"type": "boolean",
+			"description": "True if the wearer is allowed to choose the task to assign"
+		  },
+		  "actionsOnAbandonedTask": {
+			"description": "Actions to do on abandoned task",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockAction"
+			}
+		  }
+		},
+		"required": [
+		  "tasks",
+		  "voteEnabled",
+		  "voteDuration",
+		  "startVoteAfterLastVote",
+		  "enablePoints",
+		  "pointsRequired",
+		  "allowWearerToEditTasks",
+		  "allowWearerToConfigureTasks",
+		  "preventWearerFromAssigningTasks",
+		  "allowWearerToChooseTasks",
+		  "actionsOnAbandonedTask"
+		]
+	  },
+	  "TimeLimitPenaltyItemParams": {
+		"type": "object",
+		"properties": {
+		  "timeLimit": {
+			"type": "number",
+			"description": "Time limit in seconds",
+			"minimum": 60
+		  }
+		},
+		"required": [
+		  "timeLimit"
+		]
+	  },
+	  "RecurringPenaltyItemParams": {
+		"type": "object",
+		"properties": {
+		  "nbActions": {
+			"type": "number",
+			"description": "Number of actions required",
+			"minimum": 1
+		  },
+		  "frequency": {
+			"description": "Frequency in seconds",
+			"enum": [
+			  "DAILY",
+			  "EVERY_2_DAYS",
+			  "WEEKLY",
+			  "MONTHLY"
+			],
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "nbActions",
+		  "frequency"
+		]
+	  },
+	  "PenaltyItem": {
+		"type": "object",
+		"properties": {
+		  "params": {
+			"description": "Penalty params",
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/RecurringPenaltyItemParams"
+			  },
+			  {
+				"$ref": "#/components/schemas/TimeLimitPenaltyItemParams"
+			  }
+			]
+		  },
+		  "prefix": {
+			"type": "string",
+			"description": "The penalty prefix",
+			"default": "default"
+		  },
+		  "name": {
+			"type": "string",
+			"description": "The penalty name"
+		  },
+		  "punishments": {
+			"description": "Array of punishments",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockAction"
+			}
+		  }
+		},
+		"required": [
+		  "params",
+		  "prefix",
+		  "name",
+		  "punishments"
+		]
+	  },
+	  "PenaltyConfig": {
+		"type": "object",
+		"properties": {
+		  "penalties": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/PenaltyItem"
+			}
+		  }
+		},
+		"required": [
+		  "penalties"
+		]
+	  },
+	  "TemporaryOpeningConfig": {
+		"type": "object",
+		"properties": {
+		  "openingTime": {
+			"type": "number",
+			"description": "Time allowed to open, in seconds",
+			"minimum": 1
+		  },
+		  "penaltyTime": {
+			"type": "number",
+			"description": "Time added if the wearer exceeds the allowed time, in seconds",
+			"minimum": 0
+		  },
+		  "allowOnlyKeyholderToOpen": {
+			"type": "boolean"
+		  }
+		},
+		"required": [
+		  "openingTime",
+		  "penaltyTime",
+		  "allowOnlyKeyholderToOpen"
+		]
+	  },
+	  "PeerVerificationConfig": {
+		"type": "object",
+		"properties": {
+		  "enabled": {
+			"type": "boolean"
+		  },
+		  "punishments": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockAction"
+			}
+		  }
+		},
+		"required": [
+		  "enabled",
+		  "punishments"
+		]
+	  },
+	  "VerificationPictureConfig": {
+		"type": "object",
+		"properties": {
+		  "visibility": {
+			"type": "string",
+			"description": "Verification picture visibility",
+			"enum": [
+			  "all",
+			  "keyholder"
+			]
+		  },
+		  "peerVerification": {
+			"description": "Peer verification configuration",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/PeerVerificationConfig"
+			  }
+			]
+		  }
+		},
+		"required": [
+		  "visibility"
+		]
+	  },
+	  "RandomEventsConfig": {
+		"type": "object",
+		"properties": {
+		  "difficulty": {
+			"description": "The random event difficulty",
+			"enum": [
+			  "easy",
+			  "normal",
+			  "hard",
+			  "expert"
+			],
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "difficulty"
+		]
+	  },
+	  "GuessTimerConfig": {
+		"type": "object",
+		"properties": {
+		  "minRandomTime": {
+			"type": "number",
+			"description": "Minimum random time to add when the user fails to guess the timer",
+			"minimum": 0
+		  },
+		  "maxRandomTime": {
+			"type": "number",
+			"description": "Maximum random time to add when the user fails to guess the timer",
+			"minimum": 0
+		  }
+		},
+		"required": [
+		  "minRandomTime",
+		  "maxRandomTime"
+		]
+	  },
+	  "ExtensionPartyForPublic": {
+		"type": "object",
+		"properties": {
+		  "slug": {
+			"type": "string",
+			"enum": [
+			  "link",
+			  "pillory",
+			  "dice",
+			  "wheel-of-fortune",
+			  "tasks",
+			  "penalty",
+			  "temporary-opening",
+			  "verification-picture",
+			  "random-events",
+			  "guess-timer",
+			  "locktober"
+			]
+		  },
+		  "_id": {
+			"type": "string"
+		  },
+		  "displayName": {
+			"type": "string"
+		  },
+		  "summary": {
+			"type": "string"
+		  },
+		  "subtitle": {
+			"type": "string"
+		  },
+		  "icon": {
+			"type": "string"
+		  },
+		  "mode": {
+			"enum": [
+			  "cumulative",
+			  "non_cumulative",
+			  "turn",
+			  "unlimited"
+			],
+			"type": "string"
+		  },
+		  "regularity": {
+			"type": "number"
+		  },
+		  "userData": {
+			"type": "object"
+		  },
+		  "nbActionsRemaining": {
+			"type": "number"
+		  },
+		  "nextActionDate": {
+			"type": "string"
+		  },
+		  "isPartner": {
+			"type": "boolean"
+		  },
+		  "textConfig": {
+			"type": "string"
+		  },
+		  "createdAt": {
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "updatedAt": {
+			"type": "string",
+			"description": "Updated at"
+		  }
+		},
+		"required": [
+		  "slug",
+		  "config",
+		  "_id",
+		  "displayName",
+		  "summary",
+		  "subtitle",
+		  "icon",
+		  "mode",
+		  "regularity",
+		  "userData",
+		  "nbActionsRemaining",
+		  "nextActionDate",
+		  "isPartner",
+		  "textConfig",
+		  "createdAt",
+		  "updatedAt"
+		]
+	  },
+	  "ExtensionHomeActionWithPartyId": {
+		"type": "object",
+		"properties": {
+		  "extensionPartyId": {
+			"type": "string"
+		  },
+		  "slug": {
+			"type": "string"
+		  },
+		  "title": {
+			"type": "string"
+		  },
+		  "description": {
+			"type": "string"
+		  },
+		  "icon": {
+			"type": "string"
+		  },
+		  "badge": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "extensionPartyId",
+		  "slug",
+		  "title",
+		  "description",
+		  "icon"
+		]
+	  },
+	  "ReasonPreventingUnlocking": {
+		"type": "object",
+		"properties": {
+		  "reason": {
+			"type": "string"
+		  },
+		  "icon": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "reason",
+		  "icon"
+		]
+	  },
+	  "VerificationPictureItem": {
+		"type": "object",
+		"properties": {
+		  "imageFile": {
+			"type": "string"
+		  },
+		  "imageKey": {
+			"type": "string"
+		  },
+		  "submittedAt": {
+			"format": "date-time",
+			"type": "string"
+		  },
+		  "verificationCode": {
+			"type": "string"
+		  },
+		  "filename": {
+			"type": "string"
+		  },
+		  "peerVerificationId": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "imageFile",
+		  "imageKey",
+		  "submittedAt",
+		  "verificationCode"
+		]
+	  },
+	  "LockForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The lock id"
+		  },
+		  "endDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The end date"
+		  },
+		  "title": {
+			"type": "string",
+			"description": "The lock title"
+		  },
+		  "totalDuration": {
+			"type": "number",
+			"description": "The total duration, since the creation of the lock"
+		  },
+		  "user": {
+			"description": "The user",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserForPublic"
+			  }
+			]
+		  },
+		  "keyholder": {
+			"nullable": true,
+			"description": "The keyholder",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserForPublic"
+			  }
+			]
+		  },
+		  "sharedLock": {
+			"nullable": true,
+			"description": "The shared lock",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/SharedLockForPublic"
+			  }
+			]
+		  },
+		  "isAllowedToViewTime": {
+			"type": "boolean",
+			"description": "Whether the wearer is allowed to view the remaining time"
+		  },
+		  "canBeUnlocked": {
+			"type": "boolean",
+			"description": "Whether the lock can be unlocked"
+		  },
+		  "canBeUnlockedByMaxLimitDate": {
+			"type": "boolean",
+			"description": "Whether the lock can be unlocked because the max limit date has been reached"
+		  },
+		  "isFrozen": {
+			"type": "boolean",
+			"description": "Whether the lock is frozen"
+		  },
+		  "role": {
+			"description": "The user role",
+			"enum": [
+			  "keyholder",
+			  "wearer",
+			  "visitor"
+			],
+			"type": "string"
+		  },
+		  "extensions": {
+			"description": "The extensions",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ExtensionPartyForPublic"
+			}
+		  },
+		  "combination": {
+			"type": "string",
+			"description": "The combination"
+		  },
+		  "availableHomeActions": {
+			"description": "List of home actions",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ExtensionHomeActionWithPartyId"
+			}
+		  },
+		  "reasonsPreventingUnlocking": {
+			"description": "Reasons preventing unlocking",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ReasonPreventingUnlocking"
+			}
+		  },
+		  "extensionsAllowUnlocking": {
+			"type": "boolean",
+			"description": "Whether the extensions allow unlocking"
+		  },
+		  "lastVerificationPicture": {
+			"nullable": true,
+			"description": "The last verification picture",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/VerificationPictureItem"
+			  }
+			]
+		  },
+		  "createdAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "updatedAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Updated at"
+		  },
+		  "startDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The start date"
+		  },
+		  "minDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The minimum initial date configured at creation"
+		  },
+		  "maxDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The maximum initial date configured at creation"
+		  },
+		  "maxLimitDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date of the lock\n\nAfter this date, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "Whether the remaining time is displayed to the wearer"
+		  },
+		  "limitLockTime": {
+			"type": "boolean",
+			"description": "Whether the lock is limited in duration"
+		  },
+		  "status": {
+			"description": "The status",
+			"enum": [
+			  "locked",
+			  "unlocked",
+			  "deserted"
+			],
+			"type": "string"
+		  },
+		  "deletedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Deleted at"
+		  },
+		  "unlockedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Unlocked at"
+		  },
+		  "archivedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Archived at"
+		  },
+		  "frozenAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Frozen at"
+		  },
+		  "keyholderArchivedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Keyholder archived at"
+		  },
+		  "allowSessionOffer": {
+			"type": "boolean",
+			"description": "Whether the lock allows session offers"
+		  },
+		  "offerToken": {
+			"type": "string",
+			"description": "The offer token"
+		  },
+		  "hideTimeLogs": {
+			"type": "boolean",
+			"description": "True if the time information should be hidden from the history"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "endDate",
+		  "title",
+		  "totalDuration",
+		  "user",
+		  "keyholder",
+		  "sharedLock",
+		  "isAllowedToViewTime",
+		  "canBeUnlocked",
+		  "canBeUnlockedByMaxLimitDate",
+		  "isFrozen",
+		  "role",
+		  "extensions",
+		  "combination",
+		  "availableHomeActions",
+		  "reasonsPreventingUnlocking",
+		  "extensionsAllowUnlocking",
+		  "lastVerificationPicture",
+		  "createdAt",
+		  "updatedAt",
+		  "startDate",
+		  "minDate",
+		  "maxDate",
+		  "maxLimitDate",
+		  "displayRemainingTime",
+		  "limitLockTime",
+		  "status",
+		  "deletedAt",
+		  "unlockedAt",
+		  "archivedAt",
+		  "frozenAt",
+		  "keyholderArchivedAt",
+		  "allowSessionOffer",
+		  "offerToken",
+		  "hideTimeLogs"
+		]
+	  },
+	  "CreateUpdateSharedLockDto": {
+		"type": "object",
+		"properties": {
+		  "minDuration": {
+			"type": "number",
+			"description": "The minimum duration, in seconds",
+			"minimum": 1
+		  },
+		  "maxDuration": {
+			"type": "number",
+			"description": "The maximum duration, in seconds"
+		  },
+		  "maxLimitDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "The maximum duration of the lock, in seconds\n\nAfter this duration, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "minDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The minimum date"
+		  },
+		  "maxDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date"
+		  },
+		  "maxLimitDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date of the lock\n\nAfter this date, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "Whether the remaining time should be displayed to the wearer"
+		  },
+		  "limitLockTime": {
+			"type": "boolean",
+			"description": "Whether the lock is limited in time"
+		  },
+		  "isPublic": {
+			"type": "boolean",
+			"description": "Whether the lock is public"
+		  },
+		  "maxLockedUsers": {
+			"type": "number",
+			"nullable": true,
+			"description": "The number of maximum locked users for this shared lock",
+			"minimum": 1
+		  },
+		  "password": {
+			"type": "string",
+			"nullable": true,
+			"description": "An optional password"
+		  },
+		  "requireContact": {
+			"type": "boolean",
+			"description": "Whether the shared lock requires contact from wearer\n\nDisplayed for information purposes only on the lock page"
+		  },
+		  "name": {
+			"type": "string",
+			"description": "The name",
+			"maxLength": 60
+		  },
+		  "description": {
+			"type": "string",
+			"description": "The description"
+		  },
+		  "photoId": {
+			"type": "string",
+			"description": "The Unsplash photo id"
+		  },
+		  "hideTimeLogs": {
+			"type": "boolean",
+			"description": "Whether the time information should be hidden from the history"
+		  }
+		},
+		"required": [
+		  "minDuration",
+		  "maxDuration",
+		  "maxLimitDuration",
+		  "minDate",
+		  "maxDate",
+		  "maxLimitDate",
+		  "displayRemainingTime",
+		  "limitLockTime",
+		  "isPublic",
+		  "maxLockedUsers",
+		  "password",
+		  "requireContact",
+		  "name",
+		  "description",
+		  "photoId",
+		  "hideTimeLogs"
+		]
+	  },
+	  "CreateSharedLockRepDto": {
+		"type": "object",
+		"properties": {
+		  "id": {
+			"type": "string",
+			"description": "The created shared lock id"
+		  }
+		},
+		"required": [
+		  "id"
+		]
+	  },
+	  "UpdateTimeDto": {
+		"type": "object",
+		"properties": {
+		  "duration": {
+			"type": "number",
+			"description": "The duration to add, in seconds\n\nWearer can only add duration (positive values),\nunlike keyholders who can add or remove time."
+		  }
+		},
+		"required": [
+		  "duration"
+		]
+	  },
+	  "SetFreezeDto": {
+		"type": "object",
+		"properties": {
+		  "isFrozen": {
+			"type": "boolean",
+			"description": "Whether the lock is frozen"
+		  }
+		},
+		"required": [
+		  "isFrozen"
+		]
+	  },
+	  "SetLockSettingsDto": {
+		"type": "object",
+		"properties": {
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "Whether the remaining time is displayed to the wearer"
+		  }
+		},
+		"required": [
+		  "displayRemainingTime"
+		]
+	  },
+	  "IncreaseMaxLimitDateDto": {
+		"type": "object",
+		"properties": {
+		  "maxLimitDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The new maximum limit date"
+		  }
+		},
+		"required": [
+		  "maxLimitDate"
+		]
+	  },
+	  "CombinationForPublic": {
+		"type": "object",
+		"properties": {
+		  "imageUrl": {
+			"type": "string",
+			"deprecated": true,
+			"description": "Use imageFullUrl instead"
+		  },
+		  "_id": {
+			"type": "string",
+			"description": "The combination id"
+		  },
+		  "user": {
+			"type": "string",
+			"description": "The user id"
+		  },
+		  "checkStatus": {
+			"description": "The review status, if the combination requires a manual review\nfrom the moderators",
+			"enum": [
+			  "pending",
+			  "verified",
+			  "failed"
+			],
+			"type": "string"
+		  },
+		  "type": {
+			"description": "The combination type",
+			"enum": [
+			  "image",
+			  "code"
+			],
+			"type": "string"
+		  },
+		  "code": {
+			"type": "string",
+			"description": "The combination code, if the type is `code`"
+		  },
+		  "imageFullUrl": {
+			"type": "string",
+			"description": "The combination image, if the type is `image`"
+		  },
+		  "createdAt": {
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "updatedAt": {
+			"type": "string",
+			"description": "Updated at"
+		  },
+		  "enableManualCheck": {
+			"type": "boolean",
+			"description": "Whether the combination requires a manual review from the moderators"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "user",
+		  "checkStatus",
+		  "type",
+		  "createdAt",
+		  "updatedAt",
+		  "enableManualCheck"
+		]
+	  },
+	  "GetLockHistoryDto": {
+		"type": "object",
+		"properties": {
+		  "extension": {
+			"type": "string",
+			"description": "If provided, filter by extension slug"
+		  },
+		  "limit": {
+			"type": "number",
+			"description": "Limit",
+			"default": 15,
+			"minimum": 0,
+			"maximum": 100
+		  },
+		  "lastId": {
+			"type": "string",
+			"description": "Offset lastId"
+		  }
+		},
+		"required": [
+		  "limit"
+		]
+	  },
+	  "ActionLogForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string"
+		  },
+		  "type": {
+			"type": "string"
+		  },
+		  "payload": {
+			"type": "object"
+		  },
+		  "lock": {
+			"type": "string"
+		  },
+		  "role": {
+			"type": "string",
+			"enum": [
+			  "user",
+			  "keyholder",
+			  "extension",
+			  "admin"
+			]
+		  },
+		  "extension": {
+			"type": "string"
+		  },
+		  "title": {
+			"type": "string"
+		  },
+		  "description": {
+			"type": "string"
+		  },
+		  "color": {
+			"type": "string"
+		  },
+		  "createdAt": {
+			"type": "string"
+		  },
+		  "icon": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "type",
+		  "payload",
+		  "lock",
+		  "role",
+		  "title",
+		  "description",
+		  "createdAt",
+		  "icon"
+		]
+	  },
+	  "GetHistoryRepDto": {
+		"type": "object",
+		"properties": {
+		  "results": {
+			"description": "List of action logs",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ActionLogForPublic"
+			}
+		  },
+		  "count": {
+			"type": "number",
+			"description": "Number of total action logs"
+		  },
+		  "hasMore": {
+			"type": "boolean",
+			"description": "Has more results"
+		  }
+		},
+		"required": [
+		  "results",
+		  "count",
+		  "hasMore"
+		]
+	  },
+	  "DurationCriteriaData": {
+		"type": "object",
+		"properties": {
+		  "minDuration": {
+			"type": "number"
+		  },
+		  "maxDuration": {
+			"type": "number"
+		  }
+		},
+		"required": [
+		  "minDuration",
+		  "maxDuration"
+		]
+	  },
+	  "ExtensionCriteriaData": {
+		"type": "object",
+		"properties": {
+		  "extensions": {
+			"type": "array",
+			"items": {
+			  "type": "string"
+			}
+		  },
+		  "all": {
+			"type": "boolean",
+			"default": false
+		  }
+		},
+		"required": [
+		  "extensions",
+		  "all"
+		]
+	  },
+	  "SearchPublicLockCriteria": {
+		"type": "object",
+		"properties": {
+		  "duration": {
+			"$ref": "#/components/schemas/DurationCriteriaData"
+		  },
+		  "extensions": {
+			"$ref": "#/components/schemas/ExtensionCriteriaData"
+		  }
+		},
+		"required": [
+		  "duration",
+		  "extensions"
+		]
+	  },
+	  "SearchPublicLockDto": {
+		"type": "object",
+		"properties": {
+		  "criteria": {
+			"default": {},
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/SearchPublicLockCriteria"
+			  }
+			]
+		  },
+		  "limit": {
+			"type": "number",
+			"default": 15,
+			"minimum": 0,
+			"maximum": 100
+		  },
+		  "lastId": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "criteria",
+		  "limit"
+		]
+	  },
+	  "SearchPublicLockRepDto": {
+		"type": "object",
+		"properties": {
+		  "count": {
+			"type": "number"
+		  },
+		  "hasMore": {
+			"type": "boolean"
+		  },
+		  "results": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/SharedLockForPublic"
+			}
+		  }
+		},
+		"required": [
+		  "count",
+		  "hasMore",
+		  "results"
+		]
+	  },
+	  "LockForKeyholder": {
+		"type": "object",
+		"properties": {
+		  "keyholder": {
+			"description": "The keyholder id",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserForPublic"
+			  }
+			]
+		  },
+		  "startDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The start date"
+		  },
+		  "minDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The minimum initial date configured at creation"
+		  },
+		  "maxDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The maximum initial date configured at creation"
+		  },
+		  "maxLimitDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The maximum date of the lock\n\nAfter this date, the wearer can release themself\nregardless of the timer or extension restrictions."
+		  },
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "Whether the remaining time is displayed to the wearer"
+		  },
+		  "limitLockTime": {
+			"type": "boolean",
+			"description": "Whether the lock is limited in duration"
+		  },
+		  "status": {
+			"type": "string",
+			"description": "The status",
+			"enum": [
+			  "locked",
+			  "unlocked",
+			  "deserted"
+			]
+		  },
+		  "deletedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Deleted at"
+		  },
+		  "unlockedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Unlocked at"
+		  },
+		  "archivedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Archived at"
+		  },
+		  "frozenAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Frozen at"
+		  },
+		  "keyholderArchivedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "Keyholder archived at"
+		  },
+		  "allowSessionOffer": {
+			"type": "boolean",
+			"description": "Whether the lock allows session offers"
+		  },
+		  "offerToken": {
+			"type": "string",
+			"description": "The offer token"
+		  },
+		  "hideTimeLogs": {
+			"type": "boolean",
+			"description": "True if the time information should be hidden from the history"
+		  },
+		  "_id": {
+			"type": "string",
+			"description": "The lock id"
+		  },
+		  "endDate": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The end date"
+		  },
+		  "title": {
+			"type": "string",
+			"description": "The lock title"
+		  },
+		  "totalDuration": {
+			"type": "number",
+			"description": "The total duration, since the creation of the lock"
+		  },
+		  "user": {
+			"description": "The user",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserForPublic"
+			  }
+			]
+		  },
+		  "sharedLock": {
+			"nullable": true,
+			"description": "The shared lock",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/SharedLockForPublic"
+			  }
+			]
+		  },
+		  "isAllowedToViewTime": {
+			"type": "boolean",
+			"description": "Whether the wearer is allowed to view the remaining time"
+		  },
+		  "canBeUnlocked": {
+			"type": "boolean",
+			"description": "Whether the lock can be unlocked"
+		  },
+		  "canBeUnlockedByMaxLimitDate": {
+			"type": "boolean",
+			"description": "Whether the lock can be unlocked because the max limit date has been reached"
+		  },
+		  "isFrozen": {
+			"type": "boolean",
+			"description": "Whether the lock is frozen"
+		  },
+		  "role": {
+			"type": "string",
+			"description": "The user role",
+			"enum": [
+			  "keyholder",
+			  "wearer",
+			  "visitor"
+			]
+		  },
+		  "extensions": {
+			"description": "The extensions",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ExtensionPartyForPublic"
+			}
+		  },
+		  "combination": {
+			"type": "string",
+			"description": "The combination"
+		  },
+		  "availableHomeActions": {
+			"description": "List of home actions",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ExtensionHomeActionWithPartyId"
+			}
+		  },
+		  "reasonsPreventingUnlocking": {
+			"description": "Reasons preventing unlocking",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ReasonPreventingUnlocking"
+			}
+		  },
+		  "extensionsAllowUnlocking": {
+			"type": "boolean",
+			"description": "Whether the extensions allow unlocking"
+		  },
+		  "lastVerificationPicture": {
+			"nullable": true,
+			"description": "The last verification picture",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/VerificationPictureItem"
+			  }
+			]
+		  },
+		  "createdAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "updatedAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Updated at"
+		  }
+		},
+		"required": [
+		  "keyholder",
+		  "startDate",
+		  "minDate",
+		  "maxDate",
+		  "maxLimitDate",
+		  "displayRemainingTime",
+		  "limitLockTime",
+		  "status",
+		  "deletedAt",
+		  "unlockedAt",
+		  "archivedAt",
+		  "frozenAt",
+		  "keyholderArchivedAt",
+		  "allowSessionOffer",
+		  "offerToken",
+		  "hideTimeLogs",
+		  "_id",
+		  "endDate",
+		  "title",
+		  "totalDuration",
+		  "user",
+		  "sharedLock",
+		  "isAllowedToViewTime",
+		  "canBeUnlocked",
+		  "canBeUnlockedByMaxLimitDate",
+		  "isFrozen",
+		  "role",
+		  "extensions",
+		  "combination",
+		  "availableHomeActions",
+		  "reasonsPreventingUnlocking",
+		  "extensionsAllowUnlocking",
+		  "lastVerificationPicture",
+		  "createdAt",
+		  "updatedAt"
+		]
+	  },
+	  "ExploreCategory": {
+		"type": "object",
+		"properties": {
+		  "title": {
+			"type": "string"
+		  },
+		  "description": {
+			"type": "string"
+		  },
+		  "featured": {
+			"type": "boolean"
+		  },
+		  "order": {
+			"type": "number"
+		  },
+		  "type": {
+			"type": "string"
+		  },
+		  "nbItems": {
+			"type": "number",
+			"nullable": true
+		  },
+		  "locks": {
+			"type": "array",
+			"items": {
+			  "type": "object"
+			}
+		  }
+		},
+		"required": [
+		  "title",
+		  "description",
+		  "featured",
+		  "order",
+		  "type",
+		  "nbItems",
+		  "locks"
+		]
+	  },
+	  "ExploreCategoryAllRepItemDto": {
+		"type": "object",
+		"properties": {
+		  "category": {
+			"$ref": "#/components/schemas/ExploreCategory"
+		  },
+		  "locks": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/SharedLockForPublic"
+			}
+		  }
+		},
+		"required": [
+		  "category",
+		  "locks"
+		]
+	  },
+	  "UploadCombinationImageDto": {
+		"type": "object",
+		"properties": {
+		  "file": {
+			"type": "file",
+			"description": "The combination image",
+			"items": {
+			  "type": "string",
+			  "format": "binary"
+			}
+		  },
+		  "enableManualCheck": {
+			"type": "boolean",
+			"description": "Enables the manual combination image check, for Premium users."
+		  }
+		},
+		"required": [
+		  "file"
+		]
+	  },
+	  "CreateCodeRepDto": {
+		"type": "object",
+		"properties": {
+		  "combinationId": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "combinationId"
+		]
+	  },
+	  "CreateCodeDto": {
+		"type": "object",
+		"properties": {
+		  "code": {
+			"type": "string",
+			"description": "The code combination",
+			"maxLength": 255
+		  }
+		},
+		"required": [
+		  "code"
+		]
+	  },
+	  "ExtensionForPublic": {
+		"type": "object",
+		"properties": {
+		  "defaultConfig": {
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/LinkConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PilloryConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/DiceConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/WheelOfFortuneConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TasksConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PenaltyConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TemporaryOpeningConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/VerificationPictureConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/RandomEventsConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/GuessTimerConfig"
+			  }
+			]
+		  },
+		  "subtitle": {
+			"type": "string",
+			"description": "The extension subtitle"
+		  },
+		  "summary": {
+			"type": "string",
+			"description": "The extension summary"
+		  },
+		  "displayName": {
+			"type": "string",
+			"description": "The name displayed to the end users"
+		  },
+		  "icon": {
+			"type": "string",
+			"description": "The extension icon"
+		  },
+		  "slug": {
+			"type": "string",
+			"description": "The extension slug"
+		  },
+		  "availableModes": {
+			"type": "array",
+			"description": "Available modes",
+			"items": {
+			  "type": "string",
+			  "enum": [
+				"cumulative",
+				"non_cumulative",
+				"turn",
+				"unlimited"
+			  ]
+			}
+		  },
+		  "defaultRegularity": {
+			"type": "number",
+			"description": "Default regularity",
+			"default": 3600
+		  },
+		  "isEnabled": {
+			"type": "boolean",
+			"description": "TWhether the extension is enabled",
+			"default": true
+		  },
+		  "isPremium": {
+			"type": "boolean",
+			"description": "Whether the extension is only available to Premium users",
+			"default": false
+		  },
+		  "isCountedInExtensionsLimit": {
+			"type": "boolean",
+			"description": "Whether the extension is counted in the extensions limit",
+			"default": true
+		  },
+		  "hasActions": {
+			"type": "boolean",
+			"description": "Whether the extension has actions",
+			"default": true
+		  }
+		},
+		"required": [
+		  "defaultConfig",
+		  "subtitle",
+		  "summary",
+		  "displayName",
+		  "icon",
+		  "slug",
+		  "availableModes",
+		  "defaultRegularity",
+		  "isEnabled",
+		  "isPremium",
+		  "isCountedInExtensionsLimit",
+		  "hasActions"
+		]
+	  },
+	  "GetLockInfoFromExtensionRepDto": {
+		"type": "object",
+		"properties": {
+		  "extension": {
+			"description": "The extension config",
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/LinkConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PilloryConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/DiceConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/WheelOfFortuneConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TasksConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PenaltyConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TemporaryOpeningConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/VerificationPictureConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/RandomEventsConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/GuessTimerConfig"
+			  }
+			]
+		  },
+		  "lock": {
+			"description": "The lock",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/LockForPublic"
+			  }
+			]
+		  }
+		},
+		"required": [
+		  "extension",
+		  "lock"
+		]
+	  },
+	  "TriggerExtensionActionDto": {
+		"type": "object",
+		"properties": {
+		  "action": {
+			"type": "string",
+			"description": "The action name\nRefer to the extension documentation to know the available actions"
+		  },
+		  "payload": {
+			"type": "object",
+			"description": "The action payload"
+		  }
+		},
+		"required": [
+		  "action",
+		  "payload"
+		]
+	  },
+	  "LockExtensionConfigDto": {
+		"type": "object",
+		"properties": {
+		  "slug": {
+			"type": "string",
+			"enum": [
+			  "link",
+			  "pillory",
+			  "dice",
+			  "wheel-of-fortune",
+			  "tasks",
+			  "penalty",
+			  "temporary-opening",
+			  "verification-picture",
+			  "random-events",
+			  "guess-timer",
+			  "locktober"
+			]
+		  },
+		  "config": {
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/LinkConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PilloryConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/DiceConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/WheelOfFortuneConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TasksConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/PenaltyConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/TemporaryOpeningConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/VerificationPictureConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/RandomEventsConfig"
+			  },
+			  {
+				"$ref": "#/components/schemas/GuessTimerConfig"
+			  }
+			]
+		  },
+		  "mode": {
+			"type": "string",
+			"enum": [
+			  "cumulative",
+			  "non_cumulative",
+			  "turn",
+			  "unlimited"
+			]
+		  },
+		  "regularity": {
+			"type": "number",
+			"minimum": 0
+		  }
+		},
+		"required": [
+		  "slug",
+		  "config",
+		  "mode",
+		  "regularity"
+		]
+	  },
+	  "SetLockExtensionConfigDto": {
+		"type": "object",
+		"properties": {
+		  "extensions": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockExtensionConfigDto"
+			}
+		  }
+		},
+		"required": [
+		  "extensions"
+		]
+	  },
+	  "TemporaryOpeningSetCombinationDto": {
+		"type": "object",
+		"properties": {
+		  "combinationId": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "combinationId"
+		]
+	  },
+	  "PeerVerificationVoteStatus": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "object",
+			"description": "Peer verification id"
+		  },
+		  "status": {
+			"type": "string",
+			"description": "Peer verification status",
+			"enum": [
+			  "ongoing",
+			  "verified",
+			  "rejected"
+			]
+		  },
+		  "verifiedVotes": {
+			"type": "number",
+			"description": "Number of verified votes"
+		  },
+		  "rejectedVotes": {
+			"type": "number",
+			"description": "Number of rejected votes"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "status",
+		  "verifiedVotes",
+		  "rejectedVotes"
+		]
+	  },
+	  "VerificationPictureHistoryEntry": {
+		"type": "object",
+		"properties": {
+		  "verificationCode": {
+			"type": "string",
+			"description": "The verification code"
+		  },
+		  "peerVerificationId": {
+			"type": "string",
+			"description": "The peer verification id"
+		  },
+		  "imageKey": {
+			"type": "string",
+			"description": "The peer verification image key"
+		  },
+		  "submittedAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Submitted at"
+		  },
+		  "votes": {
+			"description": "Votes if the peer verification is enabled",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/PeerVerificationVoteStatus"
+			  }
+			]
+		  }
+		},
+		"required": [
+		  "imageKey",
+		  "submittedAt"
+		]
+	  },
+	  "VerificationPictureDataForHistory": {
+		"type": "object",
+		"properties": {
+		  "history": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/VerificationPictureHistoryEntry"
+			}
+		  },
+		  "currentVerificationCode": {
+			"type": "string",
+			"description": "The current verification code"
+		  },
+		  "verificationCodeRequired": {
+			"type": "boolean",
+			"description": "True if the verification code is required in the image"
+		  },
+		  "requestedAt": {
+			"format": "date-time",
+			"type": "string",
+			"nullable": true,
+			"description": "The request date"
+		  }
+		},
+		"required": [
+		  "history",
+		  "currentVerificationCode",
+		  "verificationCodeRequired",
+		  "requestedAt"
+		]
+	  },
+	  "CreateLockDto": {
+		"type": "object",
+		"properties": {
+		  "minDuration": {
+			"type": "number",
+			"description": "Min duration in seconds",
+			"minimum": 0
+		  },
+		  "maxDuration": {
+			"type": "number",
+			"description": "Max duration in seconds"
+		  },
+		  "maxLimitDuration": {
+			"type": "number",
+			"nullable": true,
+			"description": "Max limit duration in seconds"
+		  },
+		  "displayRemainingTime": {
+			"type": "boolean",
+			"description": "True if the user can view the remaining time"
+		  },
+		  "limitLockTime": {
+			"type": "boolean",
+			"description": "True if the lock is limited in duration"
+		  },
+		  "combinationId": {
+			"type": "string",
+			"description": "The combination id\n\nA combination object can be created by using the combination endpoints."
+		  },
+		  "extensions": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/LockExtensionConfigDto"
+			}
+		  },
+		  "allowSessionOffer": {
+			"type": "boolean",
+			"description": "True if the wearer can offer the lock to a keyholder"
+		  },
+		  "hideTimeLogs": {
+			"type": "boolean",
+			"description": "True if the time information should be hidden from the history"
+		  }
+		},
+		"required": [
+		  "minDuration",
+		  "maxDuration",
+		  "maxLimitDuration",
+		  "displayRemainingTime",
+		  "limitLockTime",
+		  "combinationId",
+		  "extensions",
+		  "allowSessionOffer",
+		  "hideTimeLogs"
+		]
+	  },
+	  "LockCreatedRepDto": {
+		"type": "object",
+		"properties": {
+		  "lockId": {
+			"type": "string",
+			"description": "The created lock id"
+		  }
+		},
+		"required": [
+		  "lockId"
+		]
+	  },
+	  "CreateLockFromSharedLockDto": {
+		"type": "object",
+		"properties": {
+		  "password": {
+			"type": "string",
+			"description": "The shared lock password, if needed"
+		  },
+		  "combinationId": {
+			"type": "string",
+			"description": "The combination id"
+		  }
+		},
+		"required": [
+		  "combinationId"
+		]
+	  },
+	  "AppSettingsDto": {
+		"type": "object",
+		"properties": {
+		  "nonPremiumMaxLocks": {
+			"type": "number",
+			"description": "The maximum number of locks allowed for a non-premium user"
+		  },
+		  "nonPremiumMaxExtensions": {
+			"type": "number",
+			"description": "The maximum number of extensions allowed for a non-premium user"
+		  },
+		  "maxAttachments": {
+			"type": "number",
+			"description": "Maximum number of attachments per upload"
+		  },
+		  "registerRequiresAccessKey": {
+			"type": "boolean",
+			"description": "True if the instance requires an access key"
+		  },
+		  "recaptchaClientKey": {
+			"type": "string",
+			"description": "The recaptcha client key"
+		  },
+		  "time": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The server time"
+		  }
+		},
+		"required": [
+		  "nonPremiumMaxLocks",
+		  "nonPremiumMaxExtensions",
+		  "maxAttachments",
+		  "registerRequiresAccessKey",
+		  "recaptchaClientKey",
+		  "time"
+		]
+	  },
+	  "UserStatsForPublic": {
+		"type": "object",
+		"properties": {
+		  "nbStartedLocks": {
+			"type": "number",
+			"description": "Number of locks started by the user as a wearer"
+		  },
+		  "nbEndedLocks": {
+			"type": "number",
+			"description": "Number of locks ended by the user as a wearer"
+		  },
+		  "totalTimeLocked": {
+			"type": "number",
+			"description": "Total time locked"
+		  },
+		  "maxTimeLocked": {
+			"type": "number",
+			"description": "Maximum session duration"
+		  },
+		  "keyholderNbLocks": {
+			"type": "number",
+			"description": "Number of locks keyholded"
+		  }
+		},
+		"required": [
+		  "nbStartedLocks",
+		  "nbEndedLocks",
+		  "totalTimeLocked",
+		  "maxTimeLocked",
+		  "keyholderNbLocks"
+		]
+	  },
+	  "GetUserAchievementsResponseDto": {
+		"type": "object",
+		"properties": {
+		  "slug": {
+			"type": "string"
+		  },
+		  "granted": {
+			"type": "boolean"
+		  },
+		  "progress": {
+			"type": "number"
+		  },
+		  "total": {
+			"type": "number"
+		  },
+		  "grantedAt": {
+			"type": "string"
+		  },
+		  "name": {
+			"type": "string"
+		  },
+		  "description": {
+			"type": "string"
+		  },
+		  "category": {
+			"type": "string"
+		  },
+		  "progressEnabled": {
+			"type": "boolean"
+		  }
+		},
+		"required": [
+		  "slug",
+		  "granted",
+		  "name",
+		  "description",
+		  "category",
+		  "progressEnabled"
+		]
+	  },
+	  "ProfileRepDto": {
+		"type": "object",
+		"properties": {
+		  "user": {
+			"$ref": "#/components/schemas/UserForPublic"
+		  },
+		  "stats": {
+			"$ref": "#/components/schemas/UserStatsForPublic"
+		  },
+		  "achievements": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/GetUserAchievementsResponseDto"
+			}
+		  },
+		  "sharedLocks": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/SharedLockForPublic"
+			}
+		  }
+		},
+		"required": [
+		  "user",
+		  "stats",
+		  "achievements",
+		  "sharedLocks"
+		]
+	  },
+	  "CreateOfferRequestDto": {
+		"type": "object",
+		"properties": {
+		  "keyholder": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "keyholder"
+		]
+	  },
+	  "SessionOfferRequestForPublic": {
+		"type": "object",
+		"properties": {
+		  "keyholder": {
+			"$ref": "#/components/schemas/UserForPublic"
+		  },
+		  "lock": {
+			"type": "string"
+		  },
+		  "status": {
+			"type": "string",
+			"enum": [
+			  "pending",
+			  "accepted",
+			  "rejected"
+			]
+		  },
+		  "validatedAt": {
+			"format": "date-time",
+			"type": "string"
+		  },
+		  "archivedAt": {
+			"format": "date-time",
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "keyholder",
+		  "lock",
+		  "status"
+		]
+	  },
+	  "ValidateOfferRequestDto": {
+		"type": "object",
+		"properties": {
+		  "accept": {
+			"type": "boolean"
+		  }
+		},
+		"required": [
+		  "accept"
+		]
+	  },
+	  "SessionOfferRequestForKeyholder": {
+		"type": "object",
+		"properties": {
+		  "keyholder": {
+			"type": "string"
+		  },
+		  "lock": {
+			"$ref": "#/components/schemas/UserForPublic"
+		  },
+		  "status": {
+			"type": "string",
+			"enum": [
+			  "pending",
+			  "accepted",
+			  "rejected"
+			]
+		  },
+		  "validatedAt": {
+			"format": "date-time",
+			"type": "string"
+		  },
+		  "archivedAt": {
+			"format": "date-time",
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "keyholder",
+		  "lock",
+		  "status"
+		]
+	  },
+	  "UserSettings": {
+		"type": "object",
+		"properties": {
+		  "showLocksOnProfile": {
+			"type": "boolean"
+		  },
+		  "showOnlineStatus": {
+			"type": "boolean"
+		  },
+		  "showDiscordOnProfile": {
+			"type": "boolean"
+		  },
+		  "emailOnWearerUsesSharedLock": {
+			"type": "boolean"
+		  },
+		  "messageOnWearerUsesSharedLock": {
+			"type": "boolean"
+		  },
+		  "discordNotifications": {
+			"type": "boolean"
+		  },
+		  "displayNsfw": {
+			"type": "boolean"
+		  }
+		},
+		"required": [
+		  "showLocksOnProfile",
+		  "showOnlineStatus",
+		  "showDiscordOnProfile",
+		  "emailOnWearerUsesSharedLock",
+		  "messageOnWearerUsesSharedLock",
+		  "discordNotifications",
+		  "displayNsfw"
+		]
+	  },
+	  "Region": {
+		"type": "object",
+		"properties": {
+		  "name": {
+			"type": "string"
+		  },
+		  "shortCode": {
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "name"
+		]
+	  },
+	  "Country": {
+		"type": "object",
+		"properties": {
+		  "countryName": {
+			"type": "string"
+		  },
+		  "countryShortCode": {
+			"type": "string"
+		  },
+		  "regions": {
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/Region"
+			}
+		  }
+		},
+		"required": [
+		  "countryName",
+		  "countryShortCode"
+		]
+	  },
+	  "UserPrivateMetadata": {
+		"type": "object",
+		"properties": {
+		  "locktoberPlusModalPending": {
+			"type": "boolean"
+		  }
+		},
+		"required": [
+		  "locktoberPlusModalPending"
+		]
+	  },
+	  "CurrentUser": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The user id"
+		  },
+		  "avatarUrl": {
+			"type": "string",
+			"description": "The avatar URL"
+		  },
+		  "isPremium": {
+			"type": "boolean",
+			"description": "True if the user is a premium user"
+		  },
+		  "keycloakId": {
+			"type": "string",
+			"description": "The user Keycloak id"
+		  },
+		  "username": {
+			"type": "string",
+			"description": "The username"
+		  },
+		  "email": {
+			"type": "string",
+			"description": "The email"
+		  },
+		  "subscriptionEnd": {
+			"format": "date-time",
+			"type": "string",
+			"description": "End date of subscription"
+		  },
+		  "customSubscriptionEnd": {
+			"format": "date-time",
+			"type": "string",
+			"description": "End date of custom subscription"
+		  },
+		  "description": {
+			"type": "string",
+			"description": "The profile description"
+		  },
+		  "location": {
+			"type": "string",
+			"description": "The location"
+		  },
+		  "gender": {
+			"type": "string",
+			"description": "The gender"
+		  },
+		  "birthDate": {
+			"format": "date-time",
+			"type": "string",
+			"description": "The birth date"
+		  },
+		  "role": {
+			"description": "The role",
+			"enum": [
+			  "keyholder",
+			  "wearer",
+			  "switch",
+			  "unspecified"
+			],
+			"type": "string"
+		  },
+		  "emailVerified": {
+			"type": "boolean",
+			"description": "Whether the email is verified"
+		  },
+		  "isDeveloper": {
+			"type": "boolean",
+			"description": "Whether the user is a developer"
+		  },
+		  "subscriptionCancelAfterEnd": {
+			"type": "boolean",
+			"description": "Whether the subscription is canceled after the end date"
+		  },
+		  "discordId": {
+			"type": "string",
+			"description": "The Discord id"
+		  },
+		  "discordUsername": {
+			"type": "string",
+			"description": "The Discord username"
+		  },
+		  "isAdmin": {
+			"type": "boolean",
+			"description": "Whether the user is an admin"
+		  },
+		  "settings": {
+			"description": "The user settings",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserSettings"
+			  }
+			]
+		  },
+		  "metadata": {
+			"description": "The user metadata",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserMetadata"
+			  }
+			]
+		  },
+		  "country": {
+			"description": "The country",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/Country"
+			  }
+			]
+		  },
+		  "region": {
+			"description": "Region",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/Region"
+			  }
+			]
+		  },
+		  "privateMetadata": {
+			"description": "The user private metadata",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/UserPrivateMetadata"
+			  }
+			]
+		  },
+		  "hasAcceptedCommunityRules": {
+			"type": "boolean",
+			"description": "Whether the user has accepted the community rules"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "avatarUrl",
+		  "isPremium",
+		  "keycloakId",
+		  "username",
+		  "email",
+		  "description",
+		  "location",
+		  "gender",
+		  "birthDate",
+		  "role",
+		  "emailVerified",
+		  "subscriptionCancelAfterEnd",
+		  "settings",
+		  "metadata",
+		  "country",
+		  "region",
+		  "privateMetadata",
+		  "hasAcceptedCommunityRules"
+		]
+	  },
+	  "AppFileForPublic": {
+		"type": "object",
+		"properties": {
+		  "url": {
+			"type": "string",
+			"description": "The file URL"
+		  }
+		},
+		"required": [
+		  "url"
+		]
+	  },
+	  "MessageForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The message id"
+		  },
+		  "user": {
+			"type": "string",
+			"description": "The sender id"
+		  },
+		  "attachments": {
+			"description": "Message attachments",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/AppFileForPublic"
+			}
+		  },
+		  "conversation": {
+			"type": "string",
+			"description": "The conversation id"
+		  },
+		  "createdAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "updatedAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Updated at"
+		  },
+		  "nonce": {
+			"type": "string",
+			"description": "Nonce\n\nIs present only in the return of the websocket during the creation of the\nmessage, for the sender."
+		  },
+		  "type": {
+			"description": "The message type",
+			"enum": [
+			  "message",
+			  "log"
+			],
+			"type": "string"
+		  },
+		  "message": {
+			"type": "string",
+			"description": "The message content"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "user",
+		  "attachments",
+		  "conversation",
+		  "createdAt",
+		  "updatedAt",
+		  "type",
+		  "message"
+		]
+	  },
+	  "ConversationForPublic": {
+		"type": "object",
+		"properties": {
+		  "_id": {
+			"type": "string",
+			"description": "The conversation id"
+		  },
+		  "users": {
+			"description": "List of users who are part of the conversation",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/UserForPublic"
+			}
+		  },
+		  "lastMessage": {
+			"description": "The last message sent",
+			"allOf": [
+			  {
+				"$ref": "#/components/schemas/MessageForPublic"
+			  }
+			]
+		  },
+		  "unread": {
+			"type": "boolean",
+			"description": "Is the conversation unread"
+		  },
+		  "status": {
+			"description": "Conversation status",
+			"enum": [
+			  "pending",
+			  "approved",
+			  "ignored"
+			],
+			"type": "string"
+		  },
+		  "createdAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Created at"
+		  },
+		  "lastMessageAt": {
+			"format": "date-time",
+			"type": "string",
+			"description": "Last message at"
+		  },
+		  "type": {
+			"description": "The conversation type",
+			"enum": [
+			  "private",
+			  "group"
+			],
+			"type": "string"
+		  }
+		},
+		"required": [
+		  "_id",
+		  "users",
+		  "unread",
+		  "status",
+		  "createdAt",
+		  "lastMessageAt",
+		  "type"
+		]
+	  },
+	  "GetConversationsRepDto": {
+		"type": "object",
+		"properties": {
+		  "results": {
+			"description": "List of conversations",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/ConversationForPublic"
+			}
+		  },
+		  "count": {
+			"type": "number",
+			"description": "The number of results"
+		  },
+		  "hasMore": {
+			"type": "boolean",
+			"description": "Has more"
+		  }
+		},
+		"required": [
+		  "results",
+		  "count",
+		  "hasMore"
+		]
+	  },
+	  "CreateConversationDto": {
+		"type": "object",
+		"properties": {
+		  "users": {
+			"description": "List of user ids in the conversation, excluding the logged user",
+			"type": "array",
+			"items": {
+			  "type": "string"
+			}
+		  },
+		  "type": {
+			"type": "string",
+			"description": "The conversation type\n\nThe `group` type is currently not supported.",
+			"enum": [
+			  "private",
+			  "group"
+			]
+		  },
+		  "attachments": {
+			"type": "string",
+			"description": "The file token\n\nCreate a file token by using the `/files/upload` endpoint."
+		  },
+		  "message": {
+			"type": "string",
+			"description": "The message"
+		  },
+		  "nonce": {
+			"type": "string",
+			"description": "Nonce\n\nIf this field is included, it will be returned to the websocket client"
+		  }
+		},
+		"required": [
+		  "users",
+		  "type",
+		  "message"
+		]
+	  },
+	  "UpdateConversationDto": {
+		"type": "object",
+		"properties": {
+		  "attachments": {
+			"type": "string",
+			"description": "The file token\n\nCreate a file token by using the `/files/upload` endpoint."
+		  },
+		  "message": {
+			"type": "string",
+			"description": "The message"
+		  },
+		  "nonce": {
+			"type": "string",
+			"description": "Nonce\n\nIf this field is included, it will be returned to the websocket client"
+		  }
+		},
+		"required": [
+		  "message"
+		]
+	  },
+	  "SetConversationStatusDto": {
+		"type": "object",
+		"properties": {
+		  "status": {
+			"type": "string",
+			"description": "The new conversation status",
+			"enum": [
+			  "approved",
+			  "ignored"
+			]
+		  }
+		},
+		"required": [
+		  "status"
+		]
+	  },
+	  "SetConversationUnreadDto": {
+		"type": "object",
+		"properties": {
+		  "unread": {
+			"type": "boolean",
+			"description": "True if unread"
+		  }
+		},
+		"required": [
+		  "unread"
+		]
+	  },
+	  "GetMessagesRepDto": {
+		"type": "object",
+		"properties": {
+		  "results": {
+			"description": "List of messages",
+			"type": "array",
+			"items": {
+			  "$ref": "#/components/schemas/MessageForPublic"
+			}
+		  },
+		  "count": {
+			"type": "number",
+			"description": "The number of results"
+		  },
+		  "hasMore": {
+			"type": "boolean",
+			"description": "Has more"
+		  }
+		},
+		"required": [
+		  "results",
+		  "count",
+		  "hasMore"
+		]
+	  },
+	  "UserBadgeCount": {
+		"type": "object",
+		"properties": {
+		  "pendingMessages": {
+			"type": "number",
+			"description": "Number of message requests"
+		  },
+		  "unreadMessages": {
+			"type": "number",
+			"description": "Number of messages"
+		  }
+		},
+		"required": [
+		  "pendingMessages",
+		  "unreadMessages"
+		]
+	  },
+	  "CreateMessageReportItemDto": {
+		"type": "object",
+		"properties": {
+		  "type": {
+			"description": "The report type\nEquals to `message`",
+			"enum": [
+			  "message"
+			],
+			"type": "string"
+		  },
+		  "messageId": {
+			"type": "string",
+			"description": "The message id"
+		  }
+		},
+		"required": [
+		  "type",
+		  "messageId"
+		]
+	  },
+	  "CreatePostReportItemDto": {
+		"type": "object",
+		"properties": {
+		  "type": {
+			"description": "The report type\nEquals to `post`",
+			"enum": [
+			  "post"
+			],
+			"type": "string"
+		  },
+		  "postId": {
+			"type": "string",
+			"description": "The post id"
+		  }
+		},
+		"required": [
+		  "type",
+		  "postId"
+		]
+	  },
+	  "CreateReportDto": {
+		"type": "object",
+		"properties": {
+		  "target": {
+			"description": "The content to report",
+			"oneOf": [
+			  {
+				"$ref": "#/components/schemas/CreateMessageReportItemDto"
+			  },
+			  {
+				"$ref": "#/components/schemas/CreatePostReportItemDto"
+			  }
+			]
+		  },
+		  "reason": {
+			"type": "string",
+			"description": "The reason of the report",
+			"enum": [
+			  "harassment",
+			  "suicide_self_injury",
+			  "inappropriate_content",
+			  "hate_speech",
+			  "unsolicited_content",
+			  "other"
+			]
+		  },
+		  "message": {
+			"type": "string",
+			"description": "An optional message"
+		  }
+		},
+		"required": [
+		  "target",
+		  "reason"
+		]
+	  }
+	}
+  },
+  "paths": {
+	"/files/upload": {
+	  "post": {
+		"operationId": "StorageController_uploadFiles",
+		"summary": "Upload attachments",
+		"description": "Upload attachments and get an attachment token to be used in messaging and posts\n\nThe attachment token expires after one hour.",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"multipart/form-data": {
+			  "schema": {
+				"$ref": "#/components/schemas/UploadFilesDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/UploadFilesRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Files"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/shared-locks": {
+	  "get": {
+		"operationId": "SharedLockController_findAll",
+		"summary": "Find all user shared locks",
+		"description": "Returns a list of all user shared locks",
+		"parameters": [
+		  {
+			"name": "status",
+			"required": false,
+			"in": "query",
+			"description": "The shared lock status",
+			"schema": {
+			  "default": "active",
+			  "enum": [
+				"active",
+				"archived"
+			  ],
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/SharedLockForPublic"
+				  }
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "post": {
+		"operationId": "SharedLockController_create",
+		"summary": "Create a shared lock",
+		"description": "Creates a shared lock",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateUpdateSharedLockDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CreateSharedLockRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/shared-locks/{sharedLockId}": {
+	  "get": {
+		"operationId": "SharedLockController_findOne",
+		"summary": "Find a shared lock by id",
+		"description": "Finds a shared lock by id",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"description": "The shared lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/SharedLockForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "put": {
+		"operationId": "SharedLockController_update",
+		"summary": "Update a shared lock",
+		"description": "Updates a shared lock",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"description": "The shared lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateUpdateSharedLockDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/shared-locks/{sharedLockId}/archive": {
+	  "post": {
+		"operationId": "SharedLockController_archive",
+		"summary": "Archive a shared lock",
+		"description": "Archives a shared lock",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"description": "The shared lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "201": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks": {
+	  "get": {
+		"operationId": "LockController_findAll",
+		"summary": "Get user locks",
+		"description": "Returns a list of all user locks\n\nBy default, only active locks are returned.",
+		"parameters": [
+		  {
+			"name": "status",
+			"required": false,
+			"in": "query",
+			"description": "The lock status",
+			"schema": {
+			  "default": "active",
+			  "enum": [
+				"active",
+				"archived",
+				"all"
+			  ],
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/LockForPublic"
+				  }
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "post": {
+		"operationId": "LockCreationController_create",
+		"summary": "Create a lock",
+		"description": "Creates a personal lock. To create a lock, you must first create\na combination by using the combination endpoints, and then provide its identifier.",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateLockDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/LockCreatedRepDto"
+				}
+			  }
+			}
+		  },
+		  "400": {
+			"description": "You must be a Plus member to add more extensions"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Lock Creation"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}": {
+	  "get": {
+		"operationId": "LockController_findOne",
+		"summary": "Get a lock by id",
+		"description": "Returns a lock by id",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/LockForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/archive": {
+	  "post": {
+		"operationId": "LockController_archive",
+		"summary": "Archive a lock",
+		"description": "Archives a lock as a wearer. A wearer can archive its own lock:\n<ul>\n<li>If the lock is running (status `locked`), the lock will become deserted (status `deserted`),\nwith no possibility of going back.</li>\n<li>If the lock is unlocked, the lock will simply be archived.</li>\n</ul>",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "Cannot archive the lock as a non-wearer"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/archive/keyholder": {
+	  "post": {
+		"operationId": "LockController_archiveKeyholder",
+		"summary": "Archive a lock as a keyholder",
+		"description": "Archives a lock as a keyholder. Keyholders can use this endpoint to archive unlocked locks.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "Cannot archive the lock as a non-keyholder"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/update-time": {
+	  "post": {
+		"operationId": "LockController_updateTime",
+		"summary": "Update lock duration",
+		"description": "Adds or removes duration to a lock. Keyholders can add or remove time, while wearers can only add time.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/UpdateTimeDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "Cannot change an non-locked lock"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/freeze": {
+	  "post": {
+		"operationId": "LockController_setFreeze",
+		"summary": "Freeze a lock",
+		"description": "Freezes a lock. Keyholders can use this endpoint to freeze wearer's locks.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SetFreezeDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "Cannot change an non-locked lock"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "The lock cannot be edited (wearer)"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/unlock": {
+	  "post": {
+		"operationId": "LockController_unlock",
+		"summary": "Unlock a lock",
+		"description": "Unlocks a lock. For wearers, the lock must respect certain constraints so that it can be unlocked.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "Some extensions prevent the unlocking of the lock"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/settings": {
+	  "post": {
+		"operationId": "LockController_setSettings",
+		"summary": "Update lock settings",
+		"description": "Update locks settings. Only the keyholder can update lock settings.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SetLockSettingsDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "Cannot change an non-locked lock"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "The lock cannot be edited (wearer)"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/max-limit-date": {
+	  "post": {
+		"operationId": "LockController_setMaxLimitDate",
+		"summary": "Increase the max limit date",
+		"description": "Increase the max limit date. Only the wearer can increase the limit.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/IncreaseMaxLimitDateDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "204": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "anyOf": [
+					{
+					  "description": "Cannot change an non-locked lock"
+					},
+					{
+					  "description": "Cannot define a limit to a lock that has no time limit"
+					}
+				  ]
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "The lock cannot be edited (wearer)"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/combination": {
+	  "get": {
+		"operationId": "LockController_combination",
+		"summary": "Find a lock combination",
+		"description": "Finds a lock combination",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CombinationForPublic"
+				}
+			  }
+			}
+		  },
+		  "400": {
+			"description": "Cannot get a combination for a locked lock"
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/history": {
+	  "post": {
+		"operationId": "LockController_getLockHistory",
+		"summary": "Return lock history",
+		"description": "Returns a list of action logs",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/GetLockHistoryDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/GetHistoryRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/public-locks/{sharedLockId}": {
+	  "get": {
+		"operationId": "PublicLockController_findOne",
+		"summary": "Find a public shared lock",
+		"description": "Finds a public shared lock",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/SharedLockForPublic"
+				}
+			  }
+			}
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Public Locks"
+		]
+	  }
+	},
+	"/public-locks/images/{sharedLockId}": {
+	  "get": {
+		"operationId": "PublicLockController_getSharedLockImage",
+		"summary": "Generate a shared lock image",
+		"description": "Generates an image illustrating the shared lock, to publish it on forums or social networks.",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Public Locks"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/public-locks/search": {
+	  "post": {
+		"operationId": "PublicLockController_search",
+		"summary": "Search for locks",
+		"description": "Search for locks",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SearchPublicLockDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/SearchPublicLockRepDto"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Public Locks"
+		]
+	  }
+	},
+	"/keyholder/wearers": {
+	  "get": {
+		"operationId": "KeyholderController_getKeyholderWearers",
+		"summary": "Return all locked users",
+		"description": "Returns a list of locked users",
+		"parameters": [
+		  {
+			"name": "status",
+			"required": false,
+			"in": "query",
+			"description": "Filter by lock status",
+			"schema": {
+			  "enum": [
+				"locked",
+				"unlocked",
+				"deserted",
+				"archived"
+			  ],
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/LockForKeyholder"
+				  }
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Keyholder"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "keyholder"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/explore/categories": {
+	  "get": {
+		"operationId": "ExploreCategoryController_findAll",
+		"summary": "Find Explore page locks",
+		"description": "Returns the locks of the Explore page",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/ExploreCategoryAllRepItemDto"
+				  }
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Public Locks"
+		]
+	  }
+	},
+	"/locks/user/{userId}": {
+	  "get": {
+		"operationId": "LockVisitorController_getUserLocks",
+		"summary": "Return the public locks of a user",
+		"description": "Returns the public locks of a user",
+		"parameters": [
+		  {
+			"name": "userId",
+			"required": true,
+			"in": "path",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/LockForPublic"
+				  }
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Profile"
+		]
+	  }
+	},
+	"/combinations/image": {
+	  "post": {
+		"operationId": "CombinationController_uploadImage",
+		"summary": "Upload a combination image",
+		"description": "Uploads an image and stores the combination. Once the image is uploaded,\nit cannot be recovered without being associated with a lock. To retrieve\nthe combination, refer to the endpoint `/locks/{lockId}/combination` to\nget the image URL.\n\nIf the combination is not associated with a lock, it expires after one hour.",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"multipart/form-data": {
+			  "schema": {
+				"$ref": "#/components/schemas/UploadCombinationImageDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CreateCodeRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "The user is not a Premium user"
+		  }
+		},
+		"tags": [
+		  "Combinations"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/combinations/code": {
+	  "post": {
+		"operationId": "CombinationController_createCode",
+		"summary": "Create a code combination",
+		"description": "Creates and stores the code combination. Once the code is sent, it cannot\nbe recovered without being associated with a lock. To retrieve the\ncombination, refer to the endpoint `/locks/{lockId}/combination` to get\nthe code.\n\nIf the combination is not associated with a lock, it expires after one hour.",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateCodeDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CreateCodeRepDto"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Combinations"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/extensions": {
+	  "get": {
+		"operationId": "ExtensionController_getExtensions",
+		"summary": "Get the list of extensions",
+		"description": "Returns the list of all extensions in memory",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/ExtensionForPublic"
+				  }
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Extensions"
+		]
+	  }
+	},
+	"/locks/{lockId}/extensions/{extensionId}": {
+	  "get": {
+		"operationId": "LockExtensionController_getLockInfoFromExtension",
+		"summary": "Get information from an extension for a given lock",
+		"parameters": [
+		  {
+			"name": "extensionId",
+			"required": true,
+			"in": "path",
+			"schema": {
+			  "type": "string"
+			}
+		  },
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/GetLockInfoFromExtensionRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/{lockId}/extensions/{extensionId}/action": {
+	  "post": {
+		"operationId": "LockExtensionController_triggerAction",
+		"summary": "Trigger an action for a lock extension",
+		"description": "Triggers an action in a lock extension",
+		"parameters": [
+		  {
+			"name": "extensionId",
+			"required": true,
+			"in": "path",
+			"description": "The extension party id",
+			"schema": {
+			  "type": "string"
+			}
+		  },
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/TriggerExtensionActionDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "object"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Locks"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/locks/shared-locks/{sharedLockId}/extensions": {
+	  "put": {
+		"operationId": "SharedLockExtensionController_setSharedLockExtensions",
+		"summary": "Set shared lock extensions",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"description": "The shared lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SetLockExtensionConfigDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Shared lock not found"
+		  }
+		},
+		"tags": [
+		  "Shared Locks"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "shared_locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/extensions/temporary-opening/{lockId}/combination": {
+	  "get": {
+		"operationId": "TemporaryOpeningExtensionController_getCombination",
+		"summary": "Get a lock combination",
+		"description": "Returns the lock combination\n\nThis endpoint only works if the lock is temporarily unlocked by the temporary opening extension",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CombinationForPublic"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Extensions - Temporary Opening"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "post": {
+		"operationId": "TemporaryOpeningExtensionController_setCombination",
+		"summary": "Set the new combination",
+		"description": "Updates the lock combination\n\nThis endpoint only works if the lock is temporarily unlocked by the temporary opening extension",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/TemporaryOpeningSetCombinationDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": ""
+		  }
+		},
+		"tags": [
+		  "Extensions - Temporary Opening"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/extensions/verification-picture/{lockId}/submit": {
+	  "post": {
+		"operationId": "VerificationPictureExtensionController_submitPicture",
+		"summary": "Submit a verification picture",
+		"description": "Uploads a new verification picture\n\nA user can upload a picture only if there is an existing request.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "201": {
+			"description": ""
+		  }
+		},
+		"tags": [
+		  "Extensions - Verification Picture"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/extensions/verification-picture/{lockId}/history": {
+	  "get": {
+		"operationId": "VerificationPictureExtensionController_getHistory",
+		"summary": "Get the history of verification pictures",
+		"description": "Returns the history of verification pictures",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/VerificationPictureDataForHistory"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Extensions - Verification Picture"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/public-locks/{sharedLockId}/create-lock": {
+	  "post": {
+		"operationId": "LockCreationController_createLockFromSharedLock",
+		"summary": "Create a lock from a shared lock",
+		"description": "Creates a lock from a shared lock. To create a lock, you must first\ncreate a combination and then provide its identifier.",
+		"parameters": [
+		  {
+			"name": "sharedLockId",
+			"required": true,
+			"in": "path",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateLockFromSharedLockDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/LockCreatedRepDto"
+				}
+			  }
+			}
+		  },
+		  "400": {
+			"description": "You cannot add yourself to your own lock."
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "403": {
+			"description": "Invalid password."
+		  },
+		  "404": {
+			"description": "Shared lock not found."
+		  }
+		},
+		"tags": [
+		  "Lock Creation"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/settings": {
+	  "get": {
+		"operationId": "SettingsController_getAppSettings",
+		"summary": "Get app settings",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/AppSettingsDto"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Settings"
+		]
+	  }
+	},
+	"/users/profile/by-id/{userId}": {
+	  "get": {
+		"operationId": "ProfileController_getUserById",
+		"summary": "Find a user by id",
+		"parameters": [
+		  {
+			"name": "userId",
+			"required": true,
+			"in": "path",
+			"description": "The user id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/UserForPublic"
+				}
+			  }
+			}
+		  },
+		  "404": {
+			"description": "User not found"
+		  }
+		},
+		"tags": [
+		  "Profile"
+		]
+	  }
+	},
+	"/users/profile/{username}": {
+	  "get": {
+		"operationId": "ProfileController_getUser",
+		"summary": "Find a user profile",
+		"parameters": [
+		  {
+			"name": "username",
+			"required": true,
+			"in": "path",
+			"description": "The username",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/UserForPublic"
+				}
+			  }
+			}
+		  },
+		  "404": {
+			"description": "User not found"
+		  }
+		},
+		"tags": [
+		  "Profile"
+		]
+	  }
+	},
+	"/users/profile/{username}/details": {
+	  "get": {
+		"operationId": "ProfileController_getUserProfile",
+		"summary": "Find a user profile with details",
+		"parameters": [
+		  {
+			"name": "username",
+			"required": true,
+			"in": "path",
+			"description": "The username",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/ProfileRepDto"
+				}
+			  }
+			}
+		  },
+		  "404": {
+			"description": "User not found"
+		  }
+		},
+		"tags": [
+		  "Profile"
+		]
+	  }
+	},
+	"/session-offer/lock/{lockId}": {
+	  "post": {
+		"operationId": "SessionOfferController_createKeyholdingOffer",
+		"summary": "Create a keyholding offer",
+		"description": "Allows the wearer to send a keyholding request to another user.",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateOfferRequestDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "You cannot be your own keyholder."
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  }
+		]
+	  }
+	},
+	"/session-offer/token/{offerToken}/accept": {
+	  "get": {
+		"operationId": "SessionOfferController_acceptKeyholdingRequest",
+		"summary": "Accept a keyholding request",
+		"description": "Accepts a keyholding request from a wearer. By accepting the request, you will become the keyholder. The `offerToken` parameter can be found in the `LockForPublic` object, if the user has enabled this option when creating the lock.",
+		"parameters": [
+		  {
+			"name": "offerToken",
+			"required": true,
+			"in": "path",
+			"description": "The lock offer token",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "400": {
+			"description": "You cannot be your own keyholder."
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "keyholder"
+			]
+		  }
+		]
+	  }
+	},
+	"/session-offer/lock/{lockId}/status": {
+	  "get": {
+		"operationId": "SessionOfferController_getOfferRequestStatus",
+		"summary": "Return a list of keyholding offers",
+		"description": "Returns a list of keyholding offers",
+		"parameters": [
+		  {
+			"name": "lockId",
+			"required": true,
+			"in": "path",
+			"description": "The lock id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/SessionOfferRequestForPublic"
+				  }
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  }
+		]
+	  }
+	},
+	"/session-offer/token/{offerToken}": {
+	  "get": {
+		"operationId": "SessionOfferController_getLockKeyholdingRequest",
+		"summary": "Retrive public information of a lock",
+		"description": "Retrieves public information of the lock for the visitor who received a keyholding request link",
+		"parameters": [
+		  {
+			"name": "offerToken",
+			"required": true,
+			"in": "path",
+			"description": "The keyholding request token",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/LockForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Lock not found"
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/session-offer/{sessionRequestId}": {
+	  "post": {
+		"operationId": "SessionOfferController_validateOfferRequest",
+		"summary": "Accept or reject a keyholding offer from a wearer",
+		"description": "Accepts or reject a keyholding offer sent directly by a wearer",
+		"parameters": [
+		  {
+			"name": "sessionRequestId",
+			"required": true,
+			"in": "path",
+			"description": "The keyholding offer id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/ValidateOfferRequestDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Session offer request not found."
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "keyholder"
+			]
+		  }
+		]
+	  }
+	},
+	"/session-offer/{sessionRequestId}/archive": {
+	  "get": {
+		"operationId": "SessionOfferController_archiveKeyholdingOffer",
+		"summary": "Archive a keyholding offer",
+		"description": "Archives a keyholding offer. If the offer is pending, it cancels the keyholding offer.",
+		"parameters": [
+		  {
+			"name": "sessionRequestId",
+			"required": true,
+			"in": "path",
+			"description": "The keyholding offer id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  },
+		  "404": {
+			"description": "Session offer request not found."
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "locks"
+			]
+		  }
+		]
+	  }
+	},
+	"/session-offer/requests": {
+	  "get": {
+		"operationId": "SessionOfferController_getKeyholderRequests",
+		"summary": "Return keyholding offers from wearers",
+		"description": "Returns keyholding offers from wearers",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "type": "array",
+				  "items": {
+					"$ref": "#/components/schemas/SessionOfferRequestForKeyholder"
+				  }
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Session Offer"
+		],
+		"security": [
+		  {
+			"bearer": []
+		  },
+		  {
+			"oauth2": [
+			  "keyholder"
+			]
+		  }
+		]
+	  }
+	},
+	"/auth/profile/update": {
+	  "get": {
+		"operationId": "AuthMeController_meEdit",
+		"summary": "Update profile from the authentication server",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CurrentUser"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Profile"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/auth/profile": {
+	  "get": {
+		"operationId": "AuthMeController_me",
+		"summary": "Get logged user information",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/CurrentUser"
+				}
+			  }
+			}
+		  }
+		},
+		"tags": [
+		  "Profile"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations": {
+	  "get": {
+		"operationId": "MessagingController_getConversations",
+		"summary": "Find a list of conversations",
+		"description": "Finds a list of conversations",
+		"parameters": [
+		  {
+			"name": "limit",
+			"required": false,
+			"in": "query",
+			"description": "The query limit",
+			"schema": {
+			  "minimum": 1,
+			  "maximum": 100,
+			  "default": 50,
+			  "type": "number"
+			}
+		  },
+		  {
+			"name": "status",
+			"required": false,
+			"in": "query",
+			"description": "The conversation status",
+			"schema": {
+			  "default": "approved",
+			  "enum": [
+				"pending",
+				"approved",
+				"ignored"
+			  ],
+			  "type": "string"
+			}
+		  },
+		  {
+			"name": "offset",
+			"required": false,
+			"in": "query",
+			"description": "The query offset, date of last message\n\nUse the field lastMessageAt for pagination",
+			"schema": {
+			  "format": "date-time",
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/GetConversationsRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "post": {
+		"operationId": "MessagingController_createConversation",
+		"summary": "Create a conversation",
+		"description": "Creates a conversation",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateConversationDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/ConversationForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations/by-user/{userId}": {
+	  "get": {
+		"operationId": "MessagingController_getConversationByUserId",
+		"summary": "Find conversation by user id",
+		"description": "Finds a conversation by user id",
+		"parameters": [
+		  {
+			"name": "userId",
+			"required": true,
+			"in": "path",
+			"description": "The user id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/ConversationForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations/{conversationId}": {
+	  "post": {
+		"operationId": "MessagingController_sendMessage",
+		"summary": "Add a new message in a conversation",
+		"description": "Updates a conversation",
+		"parameters": [
+		  {
+			"name": "conversationId",
+			"required": true,
+			"in": "path",
+			"description": "The conversation id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/UpdateConversationDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/MessageForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  },
+	  "get": {
+		"operationId": "MessagingController_getConversation",
+		"summary": "Find a conversation",
+		"description": "Finds a conversation",
+		"parameters": [
+		  {
+			"name": "conversationId",
+			"required": true,
+			"in": "path",
+			"description": "The conversation id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/ConversationForPublic"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations/{conversationId}/status": {
+	  "put": {
+		"operationId": "MessagingController_setConversationStatus",
+		"summary": "Set a conversation status",
+		"description": "Updates a conversation status",
+		"parameters": [
+		  {
+			"name": "conversationId",
+			"required": true,
+			"in": "path",
+			"description": "The conversation id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SetConversationStatusDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations/{conversationId}/unread": {
+	  "put": {
+		"operationId": "MessagingController_setConversationUnread",
+		"summary": "Set a conversation unread status",
+		"description": "Updates a conversation unread status",
+		"parameters": [
+		  {
+			"name": "conversationId",
+			"required": true,
+			"in": "path",
+			"description": "The conversation id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/SetConversationUnreadDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "200": {
+			"description": ""
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/conversations/{conversationId}/messages": {
+	  "get": {
+		"operationId": "MessagingController_getMessages",
+		"summary": "Find messages in a conversation",
+		"description": "Finds messages in a conversation",
+		"parameters": [
+		  {
+			"name": "conversationId",
+			"required": true,
+			"in": "path",
+			"description": "The conversation id",
+			"schema": {
+			  "type": "string"
+			}
+		  },
+		  {
+			"name": "limit",
+			"required": false,
+			"in": "query",
+			"description": "The query limit",
+			"schema": {
+			  "minimum": 1,
+			  "maximum": 100,
+			  "default": 50,
+			  "type": "number"
+			}
+		  },
+		  {
+			"name": "lastId",
+			"required": false,
+			"in": "query",
+			"description": "Last message id",
+			"schema": {
+			  "type": "string"
+			}
+		  }
+		],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/GetMessagesRepDto"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Messaging"
+		],
+		"security": [
+		  {
+			"oauth2": [
+			  "messaging"
+			]
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/users/badge/count": {
+	  "get": {
+		"operationId": "UserBadgeController_getUserBadgeCount",
+		"summary": "Get the user badge count",
+		"description": "Returns the user badge count",
+		"parameters": [],
+		"responses": {
+		  "200": {
+			"description": "",
+			"content": {
+			  "application/json": {
+				"schema": {
+				  "$ref": "#/components/schemas/UserBadgeCount"
+				}
+			  }
+			}
+		  },
+		  "401": {
+			"description": "Not authorized"
+		  }
+		},
+		"tags": [
+		  "Profile"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	},
+	"/reports": {
+	  "post": {
+		"operationId": "ReportController_createReport",
+		"summary": "Create a report",
+		"description": "Create a report",
+		"parameters": [],
+		"requestBody": {
+		  "required": true,
+		  "content": {
+			"application/json": {
+			  "schema": {
+				"$ref": "#/components/schemas/CreateReportDto"
+			  }
+			}
+		  }
+		},
+		"responses": {
+		  "201": {
+			"description": ""
+		  }
+		},
+		"tags": [
+		  "Reports"
+		],
+		"security": [
+		  {
+			"oauth2": []
+		  },
+		  {
+			"bearer": []
+		  }
+		]
+	  }
+	}
+  }
+}

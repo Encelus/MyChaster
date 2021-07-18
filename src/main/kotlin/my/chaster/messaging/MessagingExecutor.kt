@@ -40,6 +40,7 @@ class MessagingExecutor(
 			transactionalRunner.runInNewTransaction {
 				val message = applicationMessageRepository.findOrThrow(messageId)
 				val cachedMessagingConsumer = getOrCreateCachedConsumer(message)
+				LOGGER.info("Handling message for consumer ${message.consumer}: ${message.payload}")
 				cachedMessagingConsumer.handle(message)
 
 				applicationMessageRepository.delete(message)

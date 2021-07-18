@@ -17,19 +17,19 @@ import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.PageTitle
 import com.vaadin.flow.router.RouterLink
-import my.chaster.chaster.ChasterUserId
-import my.chaster.gen.chaster.model.AllOfLockForPublicUser
-import my.chaster.gen.chaster.model.LockForPublic
+import my.chaster.chaster.workaround.lock.LockRepository
 import my.chaster.views.about.AboutView
 import my.chaster.views.error.nouserspecified.NoUserSpecified
 import my.chaster.views.helloworld.HelloWorldView
-import java.time.OffsetDateTime
 import java.util.Optional
+import java.util.UUID
 
 /**
  * The main view is a top-level placeholder for other views.
  */
-class MainLayout : AppLayout(), BeforeEnterObserver {
+class MainLayout(
+	private val lockRepository: LockRepository,
+) : AppLayout(), BeforeEnterObserver {
 
 	private val menu: Tabs
 	private var viewTitle: H1? = null
@@ -112,16 +112,15 @@ class MainLayout : AppLayout(), BeforeEnterObserver {
 	}
 
 	private fun verifyChasterUserId(event: BeforeEnterEvent) {
-		if (event.location.queryParameters.parameters.containsKey("chasterUserId")) {
-			val parameterChasterUserId = event.location.queryParameters.parameters["chasterUserId"]!![0].let { ChasterUserId(it) }
-			event.ui.session.setChasterUserId(parameterChasterUserId)
-
-			val currentLock = LockForPublic()
-			currentLock.id = "abcde"
-			currentLock.startDate = OffsetDateTime.now().minusDays(7)
-			currentLock.user = AllOfLockForPublicUser()
-			currentLock.user.id = parameterChasterUserId.id
-			event.ui.session.setCurrentLock(currentLock)
+		if (event.location.queryParameters.parameters.containsKey("api-key")) {
+			val apiKey = event.location.queryParameters.parameters["api-key"]!![0]
+			val lock = lockRepository.findByFakeApiKey(UUID.fromString(apiKey))
+			if (lock == null) {
+				event.rerouteToError(NoUserSpecified(), "")
+			} else {
+				event.ui.session.setChasterUserId(lock.chasterUserId)
+				event.ui.session.setChasterLockId(lock.chasterLockId)
+			}
 		} else if (!event.ui.session.hasChasterUserId()) {
 			event.rerouteToError(NoUserSpecified(), "")
 		}

@@ -2,22 +2,25 @@ package my.chaster.messaging
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import my.chaster.jpa.AfterCommitRunner
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.core.GenericTypeResolver
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 @Component
 class MessagingPublisher(
-	applicationContext: ApplicationContext,
+	private val applicationContext: ApplicationContext,
 	private val applicationMessageRepository: ApplicationMessageRepository,
 	private val messagingExecutor: MessagingExecutor,
 	private val afterCommitRunner: AfterCommitRunner,
 	private val objectMapper: ObjectMapper,
 ) {
 
-	private val consumersByType: Map<Class<*>, Set<String>>
+	private lateinit var consumersByType: Map<Class<*>, Set<String>>
 
-	init {
+	@PostConstruct
+	fun initConsumers() {
 		val consumersByType = mutableMapOf<Class<*>, MutableSet<String>>()
 		val consumerBeans = applicationContext.getBeansOfType(MessagingConsumer::class.java)
 		consumerBeans.forEach { (name, bean) ->
@@ -43,6 +46,11 @@ class MessagingPublisher(
 	}
 
 	private fun saveMessage(consumer: String, payload: String) {
+		LOGGER.info("Saved message for consumer $consumer: $payload")
 		applicationMessageRepository.save(ApplicationMessage(consumer, payload))
+	}
+
+	companion object {
+		private val LOGGER = LoggerFactory.getLogger(MessagingPublisher::class.java)
 	}
 }

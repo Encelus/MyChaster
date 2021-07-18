@@ -14,20 +14,21 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.PageTitle
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
+import my.chaster.extension.fitness.stepsperperiod.workaround.config.StepsPerPeriodConfigRepository
 import my.chaster.fitness.GoogleFitnessService
 import my.chaster.views.MainLayout
 import my.chaster.views.TemporalFormatter
 import my.chaster.views.ensureZoneId
+import my.chaster.views.getChasterLockId
 import my.chaster.views.getChasterUserId
-import my.chaster.views.getCurrentLock
-import java.time.Duration
 import java.time.Instant
 
-@Route(value = "fit", layout = MainLayout::class)
+@Route(value = StepsPerPeriodView.ROUTE, layout = MainLayout::class)
 @PageTitle("Steps Per Period")
 class StepsPerPeriodView(
 	private val googleFitnessService: GoogleFitnessService,
 	private val stepsPerPeriodService: StepsPerPeriodService,
+	private val stepsPerPeriodConfigRepository: StepsPerPeriodConfigRepository,
 ) : VerticalLayout(), BeforeEnterObserver {
 
 	private val grid: Grid<StepsPerPeriodHistory>
@@ -52,13 +53,16 @@ class StepsPerPeriodView(
 
 	override fun beforeEnter(event: BeforeEnterEvent) {
 		val chasterUserId = event.ui.session.getChasterUserId()
-		if (event.location.queryParameters.parameters.containsKey("code")) {
+		val existingConfig = stepsPerPeriodConfigRepository.findByChasterLockId(VaadinSession.getCurrent().getChasterLockId())
+		if (existingConfig == null) {
+			event.forwardTo(StepsPerPeriodConfigView::class.java)
+		} else if (event.location.queryParameters.parameters.containsKey("code")) {
 			val googleCode = event.location.queryParameters.parameters["code"]!![0]
-			googleFitnessService.storeAuthorization(googleCode, chasterUserId)
+			googleFitnessService.storeAuthorization(ROUTE, googleCode, chasterUserId)
 			event.ui.ensureZoneId { initUi() }
 		} else if (!googleFitnessService.isAuthorized(chasterUserId)) {
 			event.ui.session.setAttribute("chasterUserId", chasterUserId)
-			event.ui.page.open(googleFitnessService.authorize(), "_self")
+			event.ui.page.open(googleFitnessService.authorize(ROUTE), "_self")
 		} else {
 			event.ui.ensureZoneId { initUi() }
 		}
@@ -84,20 +88,20 @@ class StepsPerPeriodView(
 	}
 
 	private fun initUi() {
-		val periodDuration = Duration.ofDays(1)
-		val requiredStepsCount = 7500
-		val penaltyDuration = Duration.ofHours(12)
-
 		initGridData()
-		period.text = "Period: ${TemporalFormatter.formatDuration(periodDuration)}"
-		requiredSteps.text = "Required Steps: $requiredStepsCount"
-		penalty.text = "Penalty: ${TemporalFormatter.formatDuration(penaltyDuration)}"
+
+		val config = stepsPerPeriodConfigRepository.findByChasterLockIdOrThrow(VaadinSession.getCurrent().getChasterLockId())
+		period.text = "Period: ${TemporalFormatter.formatDuration(config.period)}"
+		requiredSteps.text = "Required Steps: ${config.requiredSteps}"
+		penalty.text = "Penalty: ${TemporalFormatter.formatDuration(config.penalty)}"
 	}
 
-	fun initGridData() {
-		val currentLock = VaadinSession.getCurrent().getCurrentLock()
-		grid.setItems(stepsPerPeriodService.loadHistory(currentLock))
+	private fun initGridData() {
+		val chasterLockId = VaadinSession.getCurrent().getChasterLockId()
+		grid.setItems(stepsPerPeriodService.loadHistory(chasterLockId))
 	}
 
-
+	companion object {
+		const val ROUTE = "steps-per-period"
+	}
 }

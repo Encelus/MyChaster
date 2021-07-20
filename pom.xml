@@ -139,14 +139,23 @@
 
 	<build>
 		<defaultGoal>spring-boot:run</defaultGoal>
+		<sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<!-- Clean build and startup time for Vaadin apps sometimes may exceed
 					 the default Spring Boot's 30sec timeout.  -->
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-					<mainClass>my.chaster.MyChasterApp</mainClass>
+					<classifier>spring-boot</classifier>
 					<wait>500</wait>
 					<maxAttempts>240</maxAttempts>
 				</configuration>

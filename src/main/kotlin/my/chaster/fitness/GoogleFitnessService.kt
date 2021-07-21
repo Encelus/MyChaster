@@ -14,6 +14,7 @@ import com.google.api.services.fitness.model.DataPoint
 import com.google.api.services.fitness.model.Dataset
 import my.chaster.chaster.ChasterUserId
 import my.chaster.views.UrlBuilder
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -40,7 +41,7 @@ class GoogleFitnessService(
 			Utils.getDefaultTransport(),
 			Utils.getDefaultJsonFactory(),
 			clientSecrets,
-			setOf(FitnessScopes.FITNESS_ACTIVITY_READ, FitnessScopes.FITNESS_ACTIVITY_WRITE),
+			setOf(FitnessScopes.FITNESS_ACTIVITY_READ),
 		)
 			.setCredentialDataStore(googleFitnessTokenDataStore)
 			.build()
@@ -63,30 +64,39 @@ class GoogleFitnessService(
 	}
 
 	fun getSteps(chasterUserId: ChasterUserId, start: Instant, end: Instant): Int {
-		val fitness = createClient(chasterUserId)
-		val aggregateRequest = AggregateRequest()
-			.setAggregateBy(
-				listOf(
-					AggregateBy()
-						.setDataTypeName("com.google.step_count.delta")
-						.setDataSourceId("derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"),
-				),
-			)
-			.setBucketByTime(BucketByTime().setDurationMillis(TimeUnit.DAYS.toMillis(1)))
-			.setStartTimeMillis(start.toEpochMilli())
-			.setEndTimeMillis(end.toEpochMilli())
-		val datasets = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
-		return datasets.bucket.asSequence()
-			.flatMap { bucket: AggregateBucket -> bucket.dataset }
-			.flatMap { dataset: Dataset -> dataset.point }
-			.flatMap { dataPoint: DataPoint -> dataPoint.value }
-			.map { it.intVal }
-			.sum()
+		try {
+			val fitness = createClient(chasterUserId)
+			val aggregateRequest = AggregateRequest()
+				.setAggregateBy(
+					listOf(
+						AggregateBy()
+							.setDataTypeName("com.google.step_count.delta")
+							.setDataSourceId("derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"),
+					),
+				)
+				.setBucketByTime(BucketByTime().setDurationMillis(TimeUnit.DAYS.toMillis(1)))
+				.setStartTimeMillis(start.toEpochMilli())
+				.setEndTimeMillis(end.toEpochMilli())
+			val datasets = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
+			return datasets.bucket.asSequence()
+				.flatMap { bucket: AggregateBucket -> bucket.dataset }
+				.flatMap { dataset: Dataset -> dataset.point }
+				.flatMap { dataPoint: DataPoint -> dataPoint.value }
+				.map { it.intVal }
+				.sum()
+		} catch (e: Exception) {
+			LOGGER.error("Failed to load steps for $chasterUserId", e)
+			return -1
+		}
 	}
 
 	private fun createClient(chasterUserId: ChasterUserId): Fitness {
 		val credential = flow.loadCredential(chasterUserId.id)!!
 		return Fitness.Builder(flow.transport, flow.jsonFactory, credential)
 			.setApplicationName("MyChaster").build()
+	}
+
+	companion object {
+		private val LOGGER = LoggerFactory.getLogger(GoogleFitnessService::class.java)
 	}
 }

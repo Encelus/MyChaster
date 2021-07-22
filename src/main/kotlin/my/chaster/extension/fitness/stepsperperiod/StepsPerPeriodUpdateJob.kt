@@ -1,5 +1,6 @@
 package my.chaster.extension.fitness.stepsperperiod
 
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import javax.transaction.Transactional
@@ -14,6 +15,13 @@ class StepsPerPeriodUpdateJob(
 	@Transactional(Transactional.TxType.NEVER)
 	fun updateAllOngoingLocks() {
 		val activeLockIds = stepsPerPeriodHistoryRepository.findAllActiveChasterLockIds()
-		activeLockIds.forEach { stepsPerPeriodService.loadHistory(it) }
+		for (activeLockId in activeLockIds) {
+			stepsPerPeriodService.loadHistory(activeLockId)
+			LOGGER.info("Updated history for $activeLockId")
+		}
+	}
+
+	companion object {
+		private val LOGGER = LoggerFactory.getLogger(StepsPerPeriodUpdateJob::class.java)
 	}
 }

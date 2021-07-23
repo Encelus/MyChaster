@@ -65,35 +65,35 @@ class GoogleFitnessService(
 	}
 
 	fun getSteps(chasterUserId: ChasterUserId, start: Instant, end: Instant): Int {
-		try {
-			val fitness = createClient(chasterUserId)
-			val steps = getAggregatedStepsForDataSource(fitness, start, end, "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps")
-			val manualSteps = getAggregatedStepsForDataSource(fitness, start, end, "raw:com.google.step_count.delta:com.google.android.apps.fitness:user_input")
-			return steps - manualSteps
-		} catch (e: GoogleJsonResponseException) {
-			LOGGER.error("Failed to load steps for $chasterUserId", e)
-			return 0
-		}
+		val fitness = createClient(chasterUserId)
+		val steps = getAggregatedStepsForDataSource(chasterUserId, fitness, start, end, "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps")
+		val manualSteps = getAggregatedStepsForDataSource(chasterUserId, fitness, start, end, "raw:com.google.step_count.delta:com.google.android.apps.fitness:user_input")
+		return steps - manualSteps
 	}
 
-	private fun getAggregatedStepsForDataSource(fitness: Fitness, start: Instant, end: Instant, dataSourceId: String): Int {
-		val aggregateRequest = AggregateRequest()
-			.setAggregateBy(
-				listOf(
-					AggregateBy()
-						.setDataSourceId(dataSourceId),
-				),
-			)
-			.setBucketByTime(BucketByTime().setDurationMillis(TimeUnit.DAYS.toMillis(1)))
-			.setStartTimeMillis(start.toEpochMilli())
-			.setEndTimeMillis(end.toEpochMilli())
-		val datasets = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
-		return datasets.bucket.asSequence()
-			.flatMap { bucket: AggregateBucket -> bucket.dataset }
-			.flatMap { dataset: Dataset -> dataset.point }
-			.flatMap { dataPoint: DataPoint -> dataPoint.value }
-			.map { it.intVal }
-			.sum()
+	private fun getAggregatedStepsForDataSource(chasterUserId: ChasterUserId, fitness: Fitness, start: Instant, end: Instant, dataSourceId: String): Int {
+		try {
+			val aggregateRequest = AggregateRequest()
+				.setAggregateBy(
+					listOf(
+						AggregateBy()
+							.setDataSourceId(dataSourceId),
+					),
+				)
+				.setBucketByTime(BucketByTime().setDurationMillis(TimeUnit.DAYS.toMillis(1)))
+				.setStartTimeMillis(start.toEpochMilli())
+				.setEndTimeMillis(end.toEpochMilli())
+			val datasets = fitness.users().dataset().aggregate("me", aggregateRequest).execute()
+			return datasets.bucket.asSequence()
+				.flatMap { bucket: AggregateBucket -> bucket.dataset }
+				.flatMap { dataset: Dataset -> dataset.point }
+				.flatMap { dataPoint: DataPoint -> dataPoint.value }
+				.map { it.intVal }
+				.sum()
+		} catch (e: GoogleJsonResponseException) {
+			LOGGER.warn("Failed to load steps for $chasterUserId and $dataSourceId. ${e.message}")
+			return 0
+		}
 	}
 
 	private fun createClient(chasterUserId: ChasterUserId): Fitness {

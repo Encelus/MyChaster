@@ -112,8 +112,8 @@ class MainLayout(
 	}
 
 	private fun verifyChasterUserId(event: BeforeEnterEvent) {
-		if (event.location.queryParameters.parameters.containsKey("api-key")) {
-			val apiKey = event.location.queryParameters.parameters["api-key"]!![0]
+		if (event.location.queryParameters.parameters.containsKey(API_KEY_NAME)) {
+			val apiKey = event.location.queryParameters.parameters[API_KEY_NAME]!![0]
 			val lock = lockRepository.findByFakeApiKey(UUID.fromString(apiKey))
 			if (lock == null) {
 				event.rerouteToError(NoUserSpecified(), "")
@@ -133,5 +133,7 @@ class MainLayout(
 			ComponentUtil.setData(tab, Class::class.java, navigationTarget)
 			return tab
 		}
+
+		const val API_KEY_NAME = "api-key"
 	}
 }

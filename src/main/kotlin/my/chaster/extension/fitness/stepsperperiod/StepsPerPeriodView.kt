@@ -56,16 +56,18 @@ class StepsPerPeriodView(
 		val existingConfig = stepsPerPeriodConfigRepository.findByChasterLockId(VaadinSession.getCurrent().getChasterLockId())
 		if (existingConfig == null) {
 			event.forwardTo(StepsPerPeriodConfigView::class.java)
+			return
 		} else if (event.location.queryParameters.parameters.containsKey("code")) {
 			val googleCode = event.location.queryParameters.parameters["code"]!![0]
 			googleFitnessService.storeAuthorization(ROUTE, googleCode, chasterUserId)
-			event.ui.ensureZoneId { initUi() }
+			event.ui.page.history.replaceState(null, event.location.path)
 		} else if (!googleFitnessService.isAuthorized(chasterUserId)) {
 			event.ui.session.setAttribute("chasterUserId", chasterUserId)
 			event.ui.page.open(googleFitnessService.authorize(ROUTE), "_self")
-		} else {
-			event.ui.ensureZoneId { initUi() }
+			return
 		}
+
+		event.ui.ensureZoneId { initUi() }
 	}
 
 	private fun renderPeriod(stepsPerPeriodHistory: StepsPerPeriodHistory): String {

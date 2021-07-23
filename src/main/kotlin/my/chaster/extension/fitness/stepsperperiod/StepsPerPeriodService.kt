@@ -36,7 +36,7 @@ class StepsPerPeriodService(
 	private fun tryCreatingMissingHistoryEntries(lock: LockForPublic, config: StepsPerPeriodConfig, existingHistory: Set<StepsPerPeriodHistory>): Set<StepsPerPeriodHistory> {
 		val createHistoryFrom = existingHistory.maxOfOrNull { it.periodEnd } ?: lock.startDate.toInstant()
 		val createHistoryUntil = if (lock.endDate != null) {
-			lock.endDate.toInstant()
+			if (lock.endDate.toInstant().isAfter(Instant.now())) Instant.now() else lock.endDate.toInstant()
 		} else {
 			Instant.now()
 		}

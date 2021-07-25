@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 @Component
-class TestMessagingConsumer : MessagingConsumer<TestMessage> {
+class TestMessagingConsumer : MessagingConsumer<TestMessage>() {
 
 	val receivedMessages = mutableListOf<TestMessage>()
 	private val lock = ReentrantLock()

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.core.GenericTypeResolver
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 @Component
 class MessagingPublisher(
@@ -17,17 +16,19 @@ class MessagingPublisher(
 	private val objectMapper: ObjectMapper,
 ) {
 
-	private lateinit var consumersByType: Map<Class<*>, Set<String>>
+	private val consumersByType: MutableMap<Class<*>, MutableSet<String>> = mutableMapOf()
 
-	@PostConstruct
-	fun initConsumers() {
-		val consumersByType = mutableMapOf<Class<*>, MutableSet<String>>()
-		val consumerBeans = applicationContext.getBeansOfType(MessagingConsumer::class.java)
-		consumerBeans.forEach { (name, bean) ->
-			consumersByType.getOrPut(getPayloadType(bean)) { mutableSetOf() }.add(name)
+	@Volatile
+	private var publishedSomeMessage = false
+
+
+	fun register(messageConsumer: MessagingConsumer<*>) {
+		if (publishedSomeMessage) {
+			throw IllegalStateException("Can't register $messageConsumer because some message was already published!")
 		}
 
-		this.consumersByType = consumersByType
+		val beanName = applicationContext.getBeanNamesForType(messageConsumer::class.java)[0]
+		consumersByType.getOrPut(getPayloadType(messageConsumer)) { mutableSetOf() }.add(beanName)
 	}
 
 	private fun getPayloadType(consumer: MessagingConsumer<*>): Class<*> {
@@ -35,6 +36,8 @@ class MessagingPublisher(
 	}
 
 	fun publish(message: Any) {
+		publishedSomeMessage = true
+
 		val messageType = message::class.java
 		val payload = objectMapper.writeValueAsString(message)
 		val consumers = consumersByType[messageType] ?: throw IllegalStateException("No Consumer for $messageType")

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 @Component
 class FreezeLockMessageConsumer(
 	private val locksApi: LocksApi,
-) : MessagingConsumer<FreezeLock> {
+) : MessagingConsumer<FreezeLock>() {
 
 	override fun handle(message: FreezeLock) {
 		val dto = SetFreezeDto()

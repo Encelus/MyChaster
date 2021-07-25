@@ -9,7 +9,7 @@ import java.math.BigDecimal
 @Component
 class UpdateLockTimeMessageConsumer(
 	private val locksApi: LocksApi,
-) : MessagingConsumer<UpdateLockTime> {
+) : MessagingConsumer<UpdateLockTime>() {
 
 	override fun handle(message: UpdateLockTime) {
 		val dto = UpdateTimeDto()

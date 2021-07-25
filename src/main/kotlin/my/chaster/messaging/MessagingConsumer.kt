@@ -1,6 +1,18 @@
 package my.chaster.messaging
 
-interface MessagingConsumer<T> {
+import org.springframework.beans.factory.annotation.Autowired
+import javax.annotation.PostConstruct
 
-	fun handle(message: T): Any?
+abstract class MessagingConsumer<T> {
+
+	@Autowired
+	private lateinit var messagingPublisher: MessagingPublisher
+
+
+	abstract fun handle(message: T): Any?
+
+	@PostConstruct
+	fun register() {
+		messagingPublisher.register(this)
+	}
 }

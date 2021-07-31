@@ -13,7 +13,9 @@ import com.google.api.services.fitness.model.AggregateRequest
 import com.google.api.services.fitness.model.BucketByTime
 import com.google.api.services.fitness.model.DataPoint
 import com.google.api.services.fitness.model.Dataset
+import my.chaster.chaster.ChasterLockId
 import my.chaster.chaster.ChasterUserId
+import my.chaster.chaster.workaround.lock.LockRepository
 import my.chaster.views.UrlBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +30,7 @@ class GoogleFitnessService(
 	@Value("\${google.client-id}") clientId: String,
 	@Value("\${google.client-secret}") clientSecret: String,
 	private val googleFitnessTokenDataStore: GoogleFitnessTokenDataStore,
+	private val lockRepository: LockRepository,
 	private val urlBuilder: UrlBuilder,
 ) {
 
@@ -48,8 +51,21 @@ class GoogleFitnessService(
 			.build()
 	}
 
+	fun isAuthorized(chasterLockId: ChasterLockId): Boolean {
+		val lock = lockRepository.findByChasterLockId(chasterLockId) ?: return false
+		return isAuthorized(lock.chasterUserId)
+	}
+
 	fun isAuthorized(chasterUserId: ChasterUserId): Boolean {
-		return googleFitnessTokenDataStore.get(chasterUserId.id) != null
+		val storedCredential = googleFitnessTokenDataStore.get(chasterUserId.id)
+		if (storedCredential == null) {
+			return false
+		}
+
+		if (storedCredential.refreshToken == null && storedCredential.expirationTimeMilliseconds <= 0) {
+			return false
+		}
+		return true
 	}
 
 	fun authorize(redirectPage: String): String {

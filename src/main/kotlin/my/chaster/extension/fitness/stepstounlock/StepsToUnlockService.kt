@@ -30,6 +30,7 @@ class StepsToUnlockService(
 	private fun unfreezeIfNecessary(chasterLockId: ChasterLockId, currentSteps: Int): Boolean {
 		val config = stepsToUnlockConfigRepository.findByChasterLockIdOrThrow(chasterLockId)
 		if (config.isFrozen && config.requiredSteps <= currentSteps) {
+			config.isFrozen = false
 			chasterLockService.unfreeze(chasterLockId)
 			return true
 		}

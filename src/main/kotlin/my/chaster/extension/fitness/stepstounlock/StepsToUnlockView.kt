@@ -33,7 +33,7 @@ class StepsToUnlockView(
 		addClassName("steps-to-unlock-view")
 		defaultHorizontalComponentAlignment = FlexComponent.Alignment.CENTER
 
-		add(H3("Steps To Unlock Extensions"))
+		add(H3("Steps To Unlock Extension"))
 
 		progressBar = ProgressBar()
 		progressBar.isIndeterminate = true

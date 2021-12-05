@@ -44,6 +44,7 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
+
       - name: Set Maven Release Version
         run: mvn versions:set --batch-mode -DnewVersion="${{ github.event.inputs.releaseVersion }}"
 
@@ -57,6 +58,7 @@ jobs:
           git push
           git tag ${{ github.event.inputs.releaseVersion }}
           git push --tags origin master
+
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1

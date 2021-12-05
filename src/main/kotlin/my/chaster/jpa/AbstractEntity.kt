@@ -14,7 +14,7 @@ import javax.persistence.MappedSuperclass
 @EntityListeners(AuditingEntityListener::class)
 abstract class AbstractEntity<ID : AbstractEntityId>(
 	@EmbeddedId
-	var id: ID,
+	val id: ID,
 ) {
 
 	@CreatedDate
@@ -31,21 +31,25 @@ abstract class AbstractEntity<ID : AbstractEntityId>(
 
 
 	override fun hashCode(): Int {
-		return if (id != null) {
-			id.hashCode()
-		} else {
-			super.hashCode()
-		}
+		return id.hashCode()
 	}
 
 	override fun equals(other: Any?): Boolean {
 		if (other !is AbstractEntity<*>) {
 			return false // null or other class
 		}
-		return if (id != null) {
-			id == other.id
-		} else {
-			super.equals(other)
+		return id == other.id
+	}
+
+	override fun toString(): String {
+		val result = StringBuilder("${this::class.simpleName}(id=$id")
+		toStringInfo().forEach {
+			result.append(",${it.first}=${it.second}")
 		}
+		return "$result)"
+	}
+
+	fun toStringInfo(): List<Pair<String, String>> {
+		return mutableListOf()
 	}
 }

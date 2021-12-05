@@ -6,7 +6,7 @@ on:
       - 'main'
 
 jobs:
-  release:
+  pullrequest-ci:
     runs-on: ubuntu-latest
 
     services:

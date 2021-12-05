@@ -4,6 +4,7 @@ import my.chaster.AbstractIntegrationTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.function.Consumer
 
 internal class MessagingExecutorIntegrationTest : AbstractIntegrationTest() {
 
@@ -40,7 +41,7 @@ internal class MessagingExecutorIntegrationTest : AbstractIntegrationTest() {
 			.containsOnlyOnce(*testMessages.toTypedArray())
 
 		assertThat(applicationMessages).isNotEmpty
-			.allSatisfy { assertThat(applicationMessageRepository.findById(it.id)).isNotPresent }
+			.allSatisfy(Consumer{ assertThat(applicationMessageRepository.findById(it.id)).isNotPresent })
 	}
 
 	@Test
@@ -65,9 +66,9 @@ internal class MessagingExecutorIntegrationTest : AbstractIntegrationTest() {
 
 		assertThat(applicationMessageRepository.findById(applicationMessages[0].id))
 			.isPresent
-			.satisfies { failedMessage ->
+			.satisfies(Consumer { failedMessage ->
 				assertThat(failedMessage.get().failure).isEqualTo("[java.lang.IllegalStateException] I should be thrown...")
-			}
+			})
 		assertThat(applicationMessageRepository.findById(applicationMessages[1].id)).isNotPresent
 	}
 

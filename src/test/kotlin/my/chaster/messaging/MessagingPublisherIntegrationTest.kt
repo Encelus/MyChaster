@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.function.Consumer
 
 internal class MessagingPublisherIntegrationTest : AbstractIntegrationTest() {
 
@@ -27,7 +28,9 @@ internal class MessagingPublisherIntegrationTest : AbstractIntegrationTest() {
 		testee.publish(testMessage)
 
 		//then
-		assertThat(applicationMessageRepository.findAll()).anySatisfy { assertThat(it.payload).contains(testMessage.someValue) }
+		assertThat(applicationMessageRepository.findAll()).anySatisfy(Consumer {
+			assertThat(it.payload).contains(testMessage.someValue)
+		})
 	}
 
 	@Test
@@ -43,7 +46,9 @@ internal class MessagingPublisherIntegrationTest : AbstractIntegrationTest() {
 		testMessagingConsumer.awaitMessage(testMessage)
 		assertThat(testMessagingConsumer.receivedMessages).contains(testMessage)
 
-		assertThat(applicationMessageRepository.findAll()).noneSatisfy { assertThat(it.payload).contains(testMessage.someValue) }
+		assertThat(applicationMessageRepository.findAll()).noneSatisfy(Consumer {
+			assertThat(it.payload).contains(testMessage.someValue)
+		})
 	}
 
 	@Test
